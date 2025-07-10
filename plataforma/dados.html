@@ -2,72 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Juego de Dados</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Juego de Dados - LunaBet</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: url('assets/fondos/mesa_dados.jpg') no-repeat center center;
-      background-size: cover;
+      background-color: #121212;
       color: white;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
     }
-    .saldo-container {
-      background: rgba(0, 0, 0, 0.6);
+    h1 {
+      color: #ff3333;
+    }
+    .saldo {
+      background: #222;
       padding: 10px;
-      margin-bottom: 20px;
       border-radius: 8px;
       display: inline-block;
+      margin-bottom: 20px;
     }
-    input[type="number"] {
-      padding: 8px;
-      font-size: 16px;
-      width: 100px;
-      border-radius: 4px;
+    .dados {
+      font-size: 60px;
+      margin: 20px 0;
+    }
+    .resultado {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
     }
     button {
       padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 10px;
+      font-size: 18px;
       background: #ff3333;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
     button:hover {
       background: #cc2929;
     }
-    .dados {
-      font-size: 60px;
-      margin: 20px;
-    }
-    #resultado {
-      margin-top: 20px;
-      font-size: 22px;
-      font-weight: bold;
+    input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 100px;
+      border-radius: 6px;
+      border: none;
+      margin: 10px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Juego de Dados</h1>
+  <h1>Juego de Dados 🎲</h1>
 
-  <div class="saldo-container">
-    Saldo: $<span id="saldo">0</span><br />
-    Apuesta: <input type="number" id="apuesta" min="1" value="100" />
-  </div>
+  <div class="saldo">Saldo: $<span id="saldo">0</span></div><br>
+  Apuesta: <input type="number" id="apuesta" min="1" value="100" />
 
-  <br />
-  <button onclick="jugar()">Lanzar Dados 🎲</button>
+  <div class="dados" id="dados">🎲 🎲</div>
+  <button onclick="lanzarDados()">Lanzar Dados</button>
 
-  <div class="dados">
-    <span id="dado1">⚀</span>
-    <span id="dado2">⚀</span>
-  </div>
-
-  <div id="resultado"></div>
+  <div class="resultado" id="resultado"></div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -90,55 +87,58 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const dados = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
     let uid = null;
     let saldo = 0;
 
     auth.onAuthStateChanged(user => {
-      if (!user) return window.location.href = "../login.html";
-      uid = user.uid;
-      const saldoRef = db.ref("usuarios/" + uid + "/saldo");
-      saldoRef.once("value").then(snapshot => {
-        saldo = snapshot.val() ?? 1000;
-        document.getElementById("saldo").textContent = saldo;
-        if (snapshot.val() === null) {
-          db.ref("usuarios/" + uid).set({ saldo: 1000 });
-        }
-      });
+      if (!user) {
+        location.href = "../login.html";
+      } else {
+        uid = user.uid;
+        const saldoRef = db.ref("usuarios/" + uid + "/saldo");
+        saldoRef.once("value").then(snapshot => {
+          saldo = snapshot.val() ?? 1000;
+          document.getElementById("saldo").textContent = saldo;
+          if (snapshot.val() === null) {
+            db.ref("usuarios/" + uid).set({ saldo: 1000 });
+          }
+        });
+      }
     });
 
-    function jugar() {
+    function lanzarDados() {
       const apuesta = parseInt(document.getElementById("apuesta").value);
       if (isNaN(apuesta) || apuesta <= 0 || apuesta > saldo) {
-        document.getElementById("resultado").textContent = "Apuesta no válida.";
+        document.getElementById("resultado").textContent = "Apuesta inválida.";
         return;
       }
 
       const dado1 = Math.floor(Math.random() * 6) + 1;
       const dado2 = Math.floor(Math.random() * 6) + 1;
-      const suma = dado1 + dado2;
+      const total = dado1 + dado2;
 
-      document.getElementById("dado1").textContent = dados[dado1 - 1];
-      document.getElementById("dado2").textContent = dados[dado2 - 1];
+      const emoji = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+      document.getElementById("dados").textContent = emoji[dado1] + " " + emoji[dado2];
 
-      let nuevoSaldo = saldo;
       let mensaje = "";
+      let nuevoSaldo = saldo;
 
-      if (suma === 7 || suma === 11) {
+      if (total === 7 || total === 11) {
+        mensaje = "🎉 ¡Ganaste! +$" + (apuesta * 2);
         nuevoSaldo += apuesta;
-        mensaje = `¡Ganaste! Sacaste ${suma}. +$${apuesta}`;
-      } else if (suma === 2 || suma === 3 || suma === 12) {
+      } else if ([2, 3, 12].includes(total)) {
+        mensaje = "❌ Perdiste. -$" + apuesta;
         nuevoSaldo -= apuesta;
-        mensaje = `Perdiste. Sacaste ${suma}. -$${apuesta}`;
       } else {
-        mensaje = `Empate. Sacaste ${suma}. Se devuelve la apuesta.`;
+        mensaje = "😐 Empate. No ganas ni pierdes.";
       }
 
       saldo = nuevoSaldo;
-      db.ref("usuarios/" + uid + "/saldo").set(saldo);
       document.getElementById("saldo").textContent = saldo;
       document.getElementById("resultado").textContent = mensaje;
+      db.ref("usuarios/" + uid + "/saldo").set(saldo);
     }
   </script>
+
 </body>
 </html>
