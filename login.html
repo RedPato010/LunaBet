@@ -28,6 +28,10 @@
       border: none;
       cursor: pointer;
     }
+    a {
+      color: #ff3333;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -35,8 +39,9 @@
   <input type="email" id="email" placeholder="Email" />
   <input type="password" id="password" placeholder="Contraseña" />
   <button onclick="login()">Iniciar Sesión</button>
-  <button onclick="register()">Registrarse</button>
   <p id="mensaje"></p>
+
+  <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -57,21 +62,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
-          setTimeout(() => {
-window.location.href = "plataforma/plataforma.html";
-          }, 1500);
-        })
-        .catch(error => {
-          document.getElementById("mensaje").textContent = "Error: " + error.message;
-        });
-    }
-
     function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -89,4 +79,3 @@ window.location.href = "plataforma/plataforma.html";
   </script>
 </body>
 </html>
-
