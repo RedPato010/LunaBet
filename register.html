@@ -6,7 +6,6 @@
   <title>Registro - Lunabet</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       background: #111;
@@ -37,6 +36,16 @@
     h2 {
       margin-bottom: 20px;
     }
+    .link-button {
+      background: none;
+      border: none;
+      color: #ff3333;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 14px;
+      padding: 0;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -46,6 +55,8 @@
   <input type="password" id="password" placeholder="Contraseña" />
   <button onclick="registrar()">Registrarse</button>
   <p id="mensaje"></p>
+
+  <button class="link-button" onclick="irALogin()">¿Ya tienes cuenta? Iniciar sesión</button>
 
   <script>
     const firebaseConfig = {
@@ -60,29 +71,25 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
 
     function registrar() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          // Crear saldo inicial 1000
-          db.collection('users').doc(user.uid).set({
-            saldo: 1000
-          }).then(() => {
-            document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
-            setTimeout(() => {
-              window.location.href = "login.html";
-            }, 1500);
-          });
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
         })
         .catch((error) => {
           document.getElementById("mensaje").textContent = "Error: " + error.message;
         });
+    }
+
+    function irALogin() {
+      window.location.href = "login.html";
     }
   </script>
 
