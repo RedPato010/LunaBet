@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plataforma de Juego</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h1>Plataforma de Juego</h1>
+  <div id="user-info"></div>
+  <button id="logout-btn">Cerrar sesión</button>
+
+  <hr />
+  <h2>Juego simple: número random</h2>
+  <button id="play-btn">Jugar</button>
+  <p id="result"></p>
+
+  <script>
+    // Configurá con tus datos de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      projectId: "TU_PROJECT_ID",
+      // etc, lo que tengas configurado
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+
+    // Controlar el estado de autenticación
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        // No está logueado: redirigir al login
+        window.location.href = 'login.html'; // Cambiá por la página que tengas
+        return;
+      }
+
+      // Si está logueado, mostrar email
+      document.getElementById('user-info').textContent = 'Hola, ' + user.email;
+    });
+
+    // Botón para cerrar sesión
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      });
+    });
+
+    // Juego simple: mostrar número random al hacer click
+    document.getElementById('play-btn').addEventListener('click', () => {
+      const randomNum = Math.floor(Math.random() * 100) + 1;
+      document.getElementById('result').textContent = 'Número random: ' + randomNum;
+    });
+  </script>
+</body>
+</html>
