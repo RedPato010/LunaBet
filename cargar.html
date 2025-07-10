@@ -15,14 +15,18 @@
     <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
   </form>
 
-  <script>
-    document.getElementById('cargarForm').addEventListener('submit', e => {
-      e.preventDefault();
-      const monto = document.getElementById('monto').value;
-      alert(`Simulando carga de $${monto}. Aquí iría el link de pago de Mercado Pago.`);
-      // En el futuro, redireccionar a link real generado por backend
-    });
-  </script>
+ <script src="js/saldo.js"></script>
+<script>
+  document.getElementById('cargarForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const monto = parseFloat(document.getElementById('monto').value);
+    if (monto < 100) return alert('El monto mínimo es $100');
+    cargarSaldo(monto);
+    alert(`Cargaste $${monto}. Saldo actualizado.`);
+    window.location.href = 'dashboard.html';
+  });
+</script>
+
 
 </body>
 </html>
