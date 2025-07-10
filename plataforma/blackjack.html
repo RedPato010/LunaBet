@@ -7,22 +7,14 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #006400;
+      background: url('assets/fondos/mesa_blackjack.jpg') no-repeat center center;
+      background-size: cover;
       color: white;
       text-align: center;
       padding: 20px;
     }
-    .cartas {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
-    .carta {
-      width: 80px;
-      height: 120px;
-    }
+    .cartas { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+    .carta img { width: 80px; height: auto; border-radius: 8px; }
     .controles button {
       margin: 5px;
       padding: 10px 20px;
@@ -68,6 +60,7 @@
     <button onclick="pedirCarta()">Pedir Carta</button>
     <button onclick="plantarse()">Plantarse</button>
     <button onclick="doblar()">Doblar</button>
+    <button onclick="dividir()">Dividir</button>
     <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
@@ -94,118 +87,135 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    const palos = ["spades", "hearts", "diamonds", "clubs"];
+    const valores = [
+      { nombre: "2", valor: 2 }, { nombre: "3", valor: 3 }, { nombre: "4", valor: 4 },
+      { nombre: "5", valor: 5 }, { nombre: "6", valor: 6 }, { nombre: "7", valor: 7 },
+      { nombre: "8", valor: 8 }, { nombre: "9", valor: 9 }, { nombre: "10", valor: 10 },
+      { nombre: "jack", valor: 10 }, { nombre: "queen", valor: 10 },
+      { nombre: "king", valor: 10 }, { nombre: "ace", valor: 11 }
+    ];
+
     let jugador = [], dealer = [];
     let uid = null, saldo = 0, apuesta = 0;
-    let puedeDoblar = true;
+    let manoDividida = null;
+    let jugandoSegundaMano = false;
 
-    const palos = ["spades", "hearts", "clubs", "diamonds"];
-    const valores = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"];
-
-    function getCarta() {
+    const getCarta = () => {
       const valor = valores[Math.floor(Math.random() * valores.length)];
       const palo = palos[Math.floor(Math.random() * palos.length)];
-      const nombre = `${valor}_of_${palo}`;
-      let puntos = parseInt(valor);
-      if (["jack", "queen", "king"].includes(valor)) puntos = 10;
-      if (valor === "ace") puntos = 11;
-      return { valor: puntos, nombre };
-    }
+      return { ...valor, palo };
+    };
 
-    function mostrarCartas() {
-      document.getElementById("jugador").innerHTML = jugador.map(c => `<img class="carta" src="assets/cartas/${c.nombre}.png" />`).join("");
-      document.getElementById("dealer").innerHTML = dealer.map(c => `<img class="carta" src="assets/cartas/${c.nombre}.png" />`).join("");
+    const renderCartas = () => {
+      const htmlCarta = c =>
+        `<div class="carta"><img src="assets/cartas/${c.nombre}_of_${c.palo}.png" alt="${c.nombre} ${c.palo}"></div>`;
+      document.getElementById("jugador").innerHTML = jugador.map(htmlCarta).join("");
+      document.getElementById("dealer").innerHTML = dealer.map(htmlCarta).join("");
       document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
       document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
-    }
+    };
 
-    function calcularPuntos(mano) {
+    const calcularPuntos = mano => {
       let total = mano.reduce((acc, c) => acc + c.valor, 0);
-      let ases = mano.filter(c => c.valor === 11).length;
+      let ases = mano.filter(c => c.nombre === "ace").length;
       while (total > 21 && ases > 0) {
         total -= 10;
         ases--;
       }
       return total;
-    }
+    };
 
-    function pedirCarta() {
+    const pedirCarta = () => {
       jugador.push(getCarta());
-      puedeDoblar = false;
-      mostrarCartas();
-      const puntos = calcularPuntos(jugador);
-      if (puntos > 21) terminarJuego("Te pasaste. Perdiste.");
-    }
+      renderCartas();
+      if (calcularPuntos(jugador) > 21) terminar("Perdiste");
+    };
 
-    function plantarse() {
+    const plantarse = () => {
+      if (manoDividida && !jugandoSegundaMano) {
+        jugador = manoDividida;
+        manoDividida = null;
+        jugandoSegundaMano = true;
+        document.getElementById("resultado").textContent = "Jugando segunda mano...";
+        renderCartas();
+        return;
+      }
       while (calcularPuntos(dealer) < 17) {
         dealer.push(getCarta());
       }
-      mostrarCartas();
-
+      renderCartas();
       const puntosJugador = calcularPuntos(jugador);
       const puntosDealer = calcularPuntos(dealer);
-
       if (puntosDealer > 21 || puntosJugador > puntosDealer) {
-        terminarJuego("Ganaste", true);
+        terminar("Ganaste", true);
       } else if (puntosJugador < puntosDealer) {
-        terminarJuego("Perdiste");
+        terminar("Perdiste");
       } else {
-        terminarJuego("Empate", false, true);
+        terminar("Empate", false, true);
       }
-    }
+    };
 
-    function doblar() {
-      if (!puedeDoblar) return alert("Solo puedes doblar al comienzo de la ronda.");
-      if (saldo < apuesta * 2) return alert("No tienes saldo suficiente para doblar.");
-
-      apuesta *= 2;
-      jugador.push(getCarta());
-      puedeDoblar = false;
-      mostrarCartas();
-
-      const puntos = calcularPuntos(jugador);
-      if (puntos > 21) {
-        terminarJuego("Te pasaste. Perdiste.");
-      } else {
+    const doblar = () => {
+      if (saldo >= apuesta) {
+        saldo -= apuesta;
+        apuesta *= 2;
+        document.getElementById("saldo").textContent = saldo;
+        jugador.push(getCarta());
+        renderCartas();
         plantarse();
       }
-    }
+    };
 
-    function terminarJuego(mensaje, ganar = false, empate = false) {
+    const dividir = () => {
+      if (jugador.length === 2 && jugador[0].valor === jugador[1].valor && saldo >= apuesta) {
+        saldo -= apuesta;
+        manoDividida = [jugador.pop()];
+        jugador = [jugador[0], getCarta()];
+        renderCartas();
+        document.getElementById("saldo").textContent = saldo;
+      }
+    };
+
+    const terminar = (mensaje, ganar = false, empate = false) => {
       document.getElementById("resultado").textContent = mensaje;
       if (!apuesta) return;
-
       let nuevoSaldo = saldo;
       if (ganar) {
         const puntos = calcularPuntos(jugador);
-        nuevoSaldo += (puntos === 21 && jugador.length === 2) ? apuesta * 1.5 : apuesta;
-      } else if (!empate) {
-        nuevoSaldo -= apuesta;
+        nuevoSaldo += puntos === 21 && jugador.length === 2 ? apuesta * 1.5 : apuesta * 2;
+      } else if (empate) {
+        nuevoSaldo += apuesta;
       }
-
       db.ref("usuarios/" + uid + "/saldo").set(nuevoSaldo);
       saldo = nuevoSaldo;
       document.getElementById("saldo").textContent = saldo;
-    }
+    };
 
-    function reiniciar() {
+    const reiniciar = () => {
       apuesta = parseInt(document.getElementById("apuesta").value) || 0;
-      puedeDoblar = true;
+      if (apuesta <= 0 || apuesta > saldo) {
+        alert("Apuesta inválida");
+        return;
+      }
+      saldo -= apuesta;
+      document.getElementById("saldo").textContent = saldo;
       jugador = [getCarta(), getCarta()];
       dealer = [getCarta()];
+      manoDividida = null;
+      jugandoSegundaMano = false;
       document.getElementById("resultado").textContent = "";
-      mostrarCartas();
-    }
+      renderCartas();
+    };
 
     auth.onAuthStateChanged(user => {
       if (!user) return location.href = "../login.html";
       uid = user.uid;
-      const saldoRef = db.ref("usuarios/" + uid + "/saldo");
-      saldoRef.once("value").then(snapshot => {
+      db.ref('usuarios/' + uid + '/saldo').once('value').then(snapshot => {
         saldo = snapshot.val() ?? 1000;
         document.getElementById("saldo").textContent = saldo;
         if (snapshot.val() === null) {
-          db.ref("usuarios/" + uid).set({ saldo: 1000 });
+          db.ref('usuarios/' + uid).set({ saldo: 1000 });
         }
       });
     });
