@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blackjack Mejorado</title>
+<style>
+  body {
+    background: #222;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  #mesa {
+    max-width: 600px;
+    margin: auto;
+    background: #004400;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #0f0;
+  }
+  .mano {
+    margin: 10px 0;
+  }
+  .cartas {
+    display: inline-block;
+    margin: 0 5px;
+    padding: 8px 12px;
+    background: white;
+    color: black;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 18px;
+    min-width: 35px;
+  }
+  button {
+    margin: 5px;
+    padding: 10px 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #ff3333;
+    color: white;
+    transition: background 0.3s ease;
+  }
+  button:disabled {
+    background: #660000;
+    cursor: not-allowed;
+  }
+  #mensaje {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    min-height: 24px;
+  }
+  #saldo, #apuesta {
+    font-size: 18px;
+    margin: 10px 0;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Blackjack Mejorado</h1>
+
+  <div id="mesa">
+    <div id="saldo">Saldo: $1000</div>
+    <div id="apuesta">Apuesta: $0</div>
+    <input type="number" id="inputApuesta" placeholder="Ingresa apuesta" min="1" />
+    <button id="btnApostar">Apostar</button>
+
+    <div class="mano" id="manoJugador"></div>
+    <div class="mano" id="manoJugador2" style="display:none;"></div>
+    <div class="mano" id="manoDealer"></div>
+
+    <div>
+      <button id="btnPedir" disabled>Pedir Carta</button>
+      <button id="btnPlantarse" disabled>Plantarse</button>
+      <button id="btnDoblar" disabled>Doblar</button>
+      <button id="btnDividir" disabled>Dividir</button>
+    </div>
+
+    <div id="mensaje"></div>
+  </div>
+
+<script>
+  const deckValues = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  const suits = ['♠', '♥', '♦', '♣'];
+
+  let deck = [];
+  let saldo = 1000;
+  let apuesta = 0;
+  let manoJugador = [];
+  let manoJugador2 = [];
+  let manoDealer = [];
+  let jugandoMano2 = false;
+  let turno = 'jugador'; // jugador o dealer
+  let puedeDoblar = false;
+  let puedeDividir = false;
+
+  const saldoDiv = document.getElementById('saldo');
+  const apuestaDiv = document.getElementById('apuesta');
+  const inputApuesta = document.getElementById('inputApuesta');
+  const btnApostar = document.getElementById('btnApostar');
+  const manoJugadorDiv = document.getElementById('manoJugador');
+  const manoJugador2Div = document.getElementById('manoJugador2');
+  const manoDealerDiv = document.getElementById('manoDealer');
+  const btnPedir = document.getElementById('btnPedir');
+  const btnPlantarse = document.getElementById('btnPlantarse');
+  const btnDoblar = document.getElementById('btnDoblar');
+  const btnDividir = document.getElementById('btnDividir');
+  const mensajeDiv = document.getElementById('mensaje');
+
+  function crearDeck() {
+    deck = [];
+    for (let suit of suits) {
+      for (let val of deckValues) {
+        deck.push({valor: val, palo: suit});
+      }
+    }
+    // Barajar
+    for (let i = deck.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i+1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+  }
+
+  function valorCarta(carta) {
+    if (carta.valor === 'A') return 11;
+    if (['K','Q','J'].includes(carta.valor)) return 10;
+    return parseInt(carta.valor);
+  }
+
+  function valorMano(mano) {
+    let total = 0;
+    let ases = 0;
+    for (let c of mano) {
+      total += valorCarta(c);
+      if (c.valor === 'A') ases++;
+    }
+    // Ajustar ases si pasa de 21
+    while (total > 21 && ases > 0) {
+      total -= 10;
+      ases--;
+    }
+    return total;
+  }
+
+  function mostrarMano(div, mano, ocultarPrimera=false) {
+    div.innerHTML = '';
+    mano.forEach((carta, i) => {
+      const span = document.createElement('span');
+      span.className = 'cartas';
+      if(ocultarPrimera && i === 0) {
+        span.textContent = '🂠';
+      } else {
+        span.textContent = carta.valor + carta.palo;
+      }
+      div.appendChild(span);
+    });
+  }
+
+  function actualizarDisplay() {
+    saldoDiv.textContent = `Saldo: $${saldo}`;
+    apuestaDiv.textContent = `Apuesta: $${apuesta}`;
+    mostrarMano(manoJugadorDiv, manoJugador);
+    mostrarMano(manoDealerDiv, manoDealer, true);
+    if(manoJugador2.length > 0) {
+      manoJugador2Div.style.display = 'block';
+      mostrarMano(manoJugador2Div, manoJugador2);
+    } else {
+      manoJugador2Div.style.display = 'none';
+    }
+  }
+
+  function empezarJuego() {
+    if(apuesta <= 0 || apuesta > saldo) {
+      mensajeDiv.textContent = "Apuesta inválida o mayor que saldo.";
+      return;
+    }
+    saldo -= apuesta;
+    mensajeDiv.textContent = '';
+    jugandoMano2 = false;
+    manoJugador = [];
+    manoJugador2 = [];
+    manoDealer = [];
+    turno = 'jugador';
+    puedeDoblar = true;
+    puedeDividir = false;
+
+    crearDeck();
+
+    // Repartir cartas iniciales
+    manoJugador.push(deck.pop());
+    manoDealer.push(deck.pop());
+    manoJugador.push(deck.pop());
+    manoDealer.push(deck.pop());
+
+    // Verificar si puede dividir
+    if (manoJugador.length === 2 && manoJugador[0].valor === manoJugador[1].valor && saldo >= apuesta) {
+      puedeDividir = true;
+    }
+
+    actualizarDisplay();
+    actualizarBotones();
+
+    // Verificar Blackjack natural
+    const valorJugador = valorMano(manoJugador);
+    const valorDealer = valorMano(manoDealer);
+
+    if (valorJugador === 21) {
+      terminarJuego(true);
+    }
+  }
+
+  function actualizarBotones() {
+    btnPedir.disabled = turno !== 'jugador';
+    btnPlantarse.disabled = turno !== 'jugador';
+    btnDoblar.disabled = !(turno === 'jugador' && puedeDoblar && saldo >= apuesta);
+    btnDividir.disabled = !(turno === 'jugador' && puedeDividir);
+    btnApostar.disabled = turno === 'jugador' && apuesta > 0;
+    inputApuesta.disabled = turno !== 'jugador';
+  }
+
+  function pedirCarta() {
+    if(turno !== 'jugador') return;
+
+    if (!jugandoMano2) {
+      manoJugador.push(deck.pop());
+      puedeDoblar = false;
+      puedeDividir = false;
+      if (valorMano(manoJugador) > 21) {
+        terminarJuego(false);
+        return;
+      }
+    } else {
+      manoJugador2.push(deck.pop());
+      if (valorMano(manoJugador2) > 21) {
+        // Pasar a dealer porque mano 2 perdió
+        jugandoMano2 = false;
+        turno = 'dealer';
+        jugarDealer();
+        return;
+      }
+    }
+    actualizarDisplay();
+    actualizarBotones();
+  }
+
+  function plantarse() {
+    if(turno !== 'jugador') return;
+
+    if (!jugandoMano2 && manoJugador2.length > 0) {
+      // Pasar a mano 2
+      jugandoMano2 = true;
+      mensajeDiv.textContent = "Turno mano 2";
+    } else {
+      turno = 'dealer';
+      mensajeDiv.textContent = "Turno del dealer";
+      jugarDealer();
+    }
+    actualizarBotones();
+  }
+
+  function doblar() {
+    if(turno !== 'jugador' || !puedeDoblar || saldo < apuesta) return;
+
+    saldo -= apuesta;
+    apuesta *= 2;
+    // Solo pide una carta y se planta automáticamente
+    if (!jugandoMano2) {
+      manoJugador.push(deck.pop());
+    } else {
+      manoJugador2.push(deck.pop());
+    }
+    actualizarDisplay();
+    actualizarBotones();
+
+    if (valorMano(!jugandoMano2 ? manoJugador : manoJugador2) > 21) {
+      terminarJuego(false);
+      return;
+    }
+    plantarse();
+  }
+
+  function dividir() {
+    if(turno !== 'jugador' || !puedeDividir || saldo < apuesta) return;
+
+    saldo -= apuesta;
+
+    manoJugador2.push(manoJugador.pop());
+    manoJugador.push(deck.pop());
+    manoJugador2.push(deck.pop());
+
+    jugandoMano2 = false;
+    puedeDividir = false;
+    puedeDoblar = false;
+
+    actualizarDisplay();
+    actualizarBotones();
+    mensajeDiv.textContent = "Mano dividida: juega mano 1";
+  }
+
+  function jugarDealer() {
+    mostrarMano(manoDealerDiv, manoDealer, false);
+
+    let dealerValor = valorMano(manoDealer);
+
+    while (dealerValor < 17) {
+      manoDealer.push(deck.pop());
+      dealerValor = valorMano(manoDealer);
+      actualizarDisplay();
+    }
+
+    // Comparar resultados de mano(s)
+    const resultadoMano1 = determinarGanador(manoJugador);
+    let resultadoFinal = `Mano 1: ${resultadoMano1}`;
+
+    if (manoJugador2.length > 0) {
+      const resultadoMano2 = determinarGanador(manoJugador2);
+      resultadoFinal += ` | Mano 2: ${resultadoMano2}`;
+    }
+
+    mensajeDiv.textContent = resultadoFinal;
+    turno = 'fin';
+    actualizarBotones();
+
+    // Ajustar saldo según resultado(s)
+    ajustarSaldo(resultadoMano1, manoJugador.length === 2 && valorMano(manoJugador) === 21);
+
+    if (manoJugador2.length > 0) {
+      ajustarSaldo(determinarGanador(manoJugador2), manoJugador2.length === 2 && valorMano(manoJugador2) === 21);
+    }
+  }
+
+  function determinarGanador(manoJugadorX) {
+    const valorJug = valorMano(manoJugadorX);
+    const valorDeal = valorMano(manoDealer);
+
+    if (valorJug > 21) return 'Perdiste';
+    if (valorDeal > 21) return 'Ganaste';
+    if (valorJug === valorDeal) return 'Empate';
+    if (valorJug === 21 && manoJugadorX.length === 2) return 'Blackjack!';
+    if (valorJug > valorDeal) return 'Ganaste';
+    return 'Perdiste';
+  }
+
+  function ajustarSaldo(resultado, blackjack) {
+    if (resultado === 'Ganaste') {
+      saldo += apuesta * 2;
+    } else if (resultado === 'Empate') {
+      saldo += apuesta;
+    } else if (resultado === 'Blackjack!') {
+      saldo += Math.floor(apuesta * 2.5);
+    }
+    actualizarDisplay();
+  }
+
+  btnApostar.onclick = () => {
+    apuesta = parseInt(inputApuesta.value);
+    if (isNaN(apuesta) || apuesta <= 0 || apuesta > saldo) {
+      mensajeDiv.textContent = 'Apuesta inválida o mayor que tu saldo';
+      return;
+    }
+    empezarJuego();
+  };
+
+  btnPedir.onclick = pedirCarta;
+  btnPlantarse.onclick = plantarse;
+  btnDoblar.onclick = doblar;
+  btnDividir.onclick = dividir;
+
+  actualizarDisplay();
+</script>
+
+</body>
+</html>
