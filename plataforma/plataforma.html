@@ -33,7 +33,6 @@
       background: #222;
       padding: 8px 16px;
       border-radius: 8px;
-      margin-top: 10px;
     }
 
     nav {
@@ -83,6 +82,20 @@
       display: flex !important;
     }
 
+    .logout-btn {
+      background-color: #ff3333;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background-color: #cc2929;
+    }
+
     main {
       padding: 40px;
       text-align: center;
@@ -127,6 +140,7 @@
         </div>
       </div>
       <div class="saldo">Saldo: $<span id="saldo">0</span></div>
+      <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </nav>
   </header>
 
@@ -168,6 +182,14 @@
         });
       }
     });
+
+    function cerrarSesion() {
+      auth.signOut().then(() => {
+        window.location.href = "../login.html";
+      }).catch((error) => {
+        alert("Error al cerrar sesión: " + error.message);
+      });
+    }
 
     // Mostrar submenu al hacer click
     document.addEventListener('DOMContentLoaded', () => {
