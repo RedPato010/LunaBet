@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Plataforma Ruleta</title>
   <style>
-    /* Mantengo tu estilo original */
     body {
       font-family: Arial, sans-serif;
       background: #222;
@@ -80,30 +79,33 @@
   <button id="girarBtn">Girar Ruleta</button>
   <div id="resultado"></div>
 
-  <!-- Firebase SDK para autenticación -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <script>
-    // Configuración Firebase (idéntica a login.html)
     const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_AUTH_DOMAIN",
-      projectId: "TU_PROJECT_ID",
-      // resto config
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Verificar si el usuario está logueado, sino redirigir a login
+    // Controlar sesión, si no está logueado lo mando a login
     auth.onAuthStateChanged(user => {
       if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = '../login.html';
       }
     });
 
-    // Tu código de ruleta:
+    // Código ruleta
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const girarBtn = document.getElementById('girarBtn');
