@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retirar fondos - LunaBet</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <form class="form-box" id="retiroForm">
+    <h2>Solicitar retiro</h2>
+    <input type="number" id="monto" placeholder="Monto a retirar ($)" required min="500" />
+    <input type="text" id="cvu" placeholder="Tu CVU o Alias" required />
+    <button type="submit">Solicitar retiro</button>
+    <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
+  </form>
+
+  <script>
+    document.getElementById('retiroForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const monto = document.getElementById('monto').value;
+      const cvu = document.getElementById('cvu').value;
+      alert(`Solicitud de retiro enviada:\nMonto: $${monto}\nDestino: ${cvu}\n(En la versión real esto será automático)`);
+    });
+  </script>
+
+</body>
+</html>
