@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -13,19 +13,19 @@
       text-align: center;
       padding: 20px;
     }
+
     .cartas {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin: 10px 0;
     }
+
     .carta {
-      font-size: 32px;
-      padding: 10px 15px;
-      background: #222;
-      border-radius: 8px;
-      box-shadow: 0 0 8px #000;
+      width: 60px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
+
     .controles button {
       margin: 5px;
       padding: 10px 20px;
@@ -36,18 +36,21 @@
       background: #ff3333;
       color: white;
     }
+
     .saldo-container {
       background: rgba(0,0,0,0.5);
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 8px;
     }
+
     input[type="number"] {
       padding: 8px;
       font-size: 16px;
       border-radius: 4px;
       width: 100px;
     }
+
     #resultado {
       font-size: 20px;
       font-weight: bold;
@@ -76,6 +79,7 @@
     <button onclick="pedirCarta()">Pedir Carta</button>
     <button onclick="plantarse()">Plantarse</button>
     <button onclick="doblarApuesta()">Doblar</button>
+    <button onclick="dividir()">Dividir</button>
     <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
@@ -102,24 +106,41 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    let jugador = [], dealer = [];
+    let jugador = [], dealer = [], jugador2 = null;
     let uid = null, saldo = 0, apuesta = 0;
     let doblado = false;
 
-    const palos = ["♠", "♥", "♦", "♣"];
+    const palos = ["C", "D", "H", "S"]; // ♣ ♦ ♥ ♠
     const valores = [1,2,3,4,5,6,7,8,9,10,10,10,11];
 
     const getCarta = () => {
-      const valor = valores[Math.floor(Math.random() * valores.length)];
-      const palo = palos[Math.floor(Math.random() * palos.length)];
-      return { valor, palo };
+      let valor = valores[Math.floor(Math.random() * valores.length)];
+      let palo = palos[Math.floor(Math.random() * palos.length)];
+      return { valor, palo, display: `${valor}${palo}` };
     };
 
-    const mostrarCartas = () => {
-      document.getElementById("jugador").innerHTML = jugador.map(c => `<div class="carta">${c.valor}${c.palo}</div>`).join("");
-      document.getElementById("dealer").innerHTML = dealer.map(c => `<div class="carta">${c.valor}${c.palo}</div>`).join("");
-      document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
-      document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
+    const renderCartas = (cartas, contenedorId) => {
+      const div = document.getElementById(contenedorId);
+      div.innerHTML = "";
+      cartas.forEach((carta, index) => {
+        const img = document.createElement("img");
+        img.src = `assets/cartas/${getNombreArchivo(carta)}.png`;
+        img.className = "carta";
+        img.style.opacity = "0";
+        img.style.transform = "translateY(-10px)";
+        setTimeout(() => {
+          img.style.opacity = "1";
+          img.style.transform = "translateY(0)";
+        }, 100 * index);
+        div.appendChild(img);
+      });
+    };
+
+    const getNombreArchivo = (carta) => {
+      const valor = carta.valor === 11 ? "A" :
+                    carta.valor === 10 && ![10].includes(carta.valorOriginal) ? ["J","Q","K"][Math.floor(Math.random()*3)] :
+                    carta.valor;
+      return `${valor}${carta.palo}`;
     };
 
     const calcularPuntos = mano => {
@@ -130,6 +151,13 @@
         ases--;
       }
       return total;
+    };
+
+    const mostrarCartas = () => {
+      renderCartas(jugador, "jugador");
+      renderCartas(dealer, "dealer");
+      document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
+      document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
     };
 
     const pedirCarta = () => {
@@ -162,6 +190,15 @@
       doblado = true;
       pedirCarta();
       plantarse();
+    };
+
+    const dividir = () => {
+      if (jugador.length !== 2 || jugador[0].valor !== jugador[1].valor) {
+        alert("Solo puedes dividir si las 2 primeras cartas son iguales.");
+        return;
+      }
+      alert("Función 'Dividir' en desarrollo.");
+      // Aquí podrías duplicar la mano y jugar las dos una por una.
     };
 
     const terminarJuego = (mensaje, ganar = false, empate = false) => {
