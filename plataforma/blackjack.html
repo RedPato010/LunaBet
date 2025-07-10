@@ -3,417 +3,207 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Blackjack - Lunabet</title>
+  <title>Blackjack</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #0b3d0b;
+      background: url('assets/fondos/mesa_blackjack.jpg') no-repeat center center;
+      background-size: cover;
       color: white;
-      margin: 0; padding: 20px;
-      display: flex; flex-direction: column; align-items: center;
-      min-height: 100vh;
-    }
-    header {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      align-items: center;
-    }
-    #saldo {
-      background: #123412;
-      padding: 8px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-    #blackjack {
-      background: #145214;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px #0f7c0f;
-      max-width: 800px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .manos {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 15px;
-    }
-    .mano {
-      width: 48%;
-      background: #0d2a0d;
-      border-radius: 12px;
-      padding: 10px;
-      box-sizing: border-box;
-      min-height: 160px;
-    }
-    .mano h3 {
-      margin-top: 0;
-      margin-bottom: 8px;
       text-align: center;
-      font-weight: normal;
+      padding: 20px;
     }
     .cartas {
       display: flex;
       justify-content: center;
       gap: 10px;
-      flex-wrap: wrap;
+      margin: 10px 0;
     }
     .carta {
-      width: 50px;
-      height: 75px;
-      background: white;
-      color: black;
+      font-size: 32px;
+      padding: 10px 15px;
+      background: #222;
       border-radius: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      font-size: 22px;
-      user-select: none;
-      box-shadow: 1px 2px 5px rgba(0,0,0,0.5);
-      position: relative;
+      box-shadow: 0 0 8px #000;
     }
-    .carta.oculta {
-      background: #111;
-      border: 2px solid #333;
-      color: transparent;
-      font-size: 0;
-    }
-    #puntos-dealer, #puntos-jugador {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 8px;
-      font-size: 18px;
-    }
-    #controles {
-      margin-top: 10px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    button {
-      background: #28a745;
-      color: white;
+    .controles button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
       border: none;
-      padding: 12px 22px;
-      border-radius: 10px;
-      font-weight: bold;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      min-width: 90px;
+      background: #ff3333;
+      color: white;
     }
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
+    .saldo-container {
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
     }
-    #mensaje {
-      margin-top: 15px;
+    input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 4px;
+      width: 100px;
+    }
+    #resultado {
       font-size: 20px;
       font-weight: bold;
-      height: 30px;
-      min-height: 30px;
-      text-align: center;
-      min-width: 300px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h2>Blackjack</h2>
-  <div>Saldo: $<span id="saldo">0</span></div>
-</header>
+  <h1>Blackjack</h1>
 
-<div id="blackjack">
-  <div class="manos">
-    <div class="mano" id="dealer-mano">
-      <h3>Dealer</h3>
-      <div class="cartas" id="cartas-dealer"></div>
-      <div id="puntos-dealer"></div>
-    </div>
-    <div class="mano" id="jugador-mano">
-      <h3>Jugador</h3>
-      <div class="cartas" id="cartas-jugador"></div>
-      <div id="puntos-jugador"></div>
-    </div>
+  <div class="saldo-container">
+    Saldo actual: $<span id="saldo">0</span><br/>
+    Apuesta: <input type="number" id="apuesta" min="1" value="100" />
   </div>
 
-  <div id="controles">
-    <button id="btn-pedir">Pedir Carta</button>
-    <button id="btn-plantarse">Plantarse</button>
-    <button id="btn-doblar">Doblar</button>
-    <button id="btn-reiniciar" disabled>Reiniciar</button>
+  <h2>Dealer</h2>
+  <div id="dealer" class="cartas"></div>
+  <p>Puntos Dealer: <span id="puntosDealer">0</span></p>
+
+  <h2>Jugador</h2>
+  <div id="jugador" class="cartas"></div>
+  <p>Puntos Jugador: <span id="puntosJugador">0</span></p>
+
+  <div class="controles">
+    <button onclick="pedirCarta()">Pedir Carta</button>
+    <button onclick="plantarse()">Plantarse</button>
+    <button onclick="doblarApuesta()">Doblar</button>
+    <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
-  <div id="mensaje"></div>
-</div>
+  <p id="resultado"></p>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
-    authDomain: "lunabet-73609.firebaseapp.com",
-    databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
-    projectId: "lunabet-73609",
-    storageBucket: "lunabet-73609.firebasestorage.app",
-    messagingSenderId: "45582135337",
-    appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
-    measurementId: "G-0XC4PX3HK9"
-  };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-  // Variables para el juego
-  let deck = [];
-  let jugadorMano = [];
-  let dealerMano = [];
-  let jugadorSaldo = 0;
-  let apuesta = 10; // fija para testeo, luego podes pedir input
-  let jugadorPuedePedir = true;
-  let turnoJugando = true;
-  let doblado = false;
+    let jugador = [], dealer = [];
+    let uid = null, saldo = 0, apuesta = 0;
+    let doblado = false;
 
-  // Elementos DOM
-  const cartasJugadorDiv = document.getElementById('cartas-jugador');
-  const cartasDealerDiv = document.getElementById('cartas-dealer');
-  const puntosJugadorSpan = document.getElementById('puntos-jugador');
-  const puntosDealerSpan = document.getElementById('puntos-dealer');
-  const mensajeDiv = document.getElementById('mensaje');
-  const saldoSpan = document.getElementById('saldo');
-  const btnPedir = document.getElementById('btn-pedir');
-  const btnPlantarse = document.getElementById('btn-plantarse');
-  const btnDoblar = document.getElementById('btn-doblar');
-  const btnReiniciar = document.getElementById('btn-reiniciar');
+    const palos = ["♠", "♥", "♦", "♣"];
+    const valores = [1,2,3,4,5,6,7,8,9,10,10,10,11];
 
-  // Carga saldo desde Firebase
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = 'login.html';
-    } else {
-      const uid = user.uid;
-      db.ref('usuarios/' + uid + '/saldo').once('value').then(snapshot => {
-        jugadorSaldo = snapshot.val() ?? 100; // default 100 si no existe
-        saldoSpan.textContent = jugadorSaldo;
-        iniciarJuego();
-      });
-    }
-  });
+    const getCarta = () => {
+      const valor = valores[Math.floor(Math.random() * valores.length)];
+      const palo = palos[Math.floor(Math.random() * palos.length)];
+      return { valor, palo };
+    };
 
-  // Baraja estándar 52 cartas (sin comodines)
-  function crearDeck() {
-    const palos = ['♠', '♥', '♦', '♣'];
-    const valores = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    const deckNuevo = [];
-    for (const palo of palos) {
-      for (const valor of valores) {
-        deckNuevo.push({ valor, palo });
+    const mostrarCartas = () => {
+      document.getElementById("jugador").innerHTML = jugador.map(c => `<div class="carta">${c.valor}${c.palo}</div>`).join("");
+      document.getElementById("dealer").innerHTML = dealer.map(c => `<div class="carta">${c.valor}${c.palo}</div>`).join("");
+      document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
+      document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
+    };
+
+    const calcularPuntos = mano => {
+      let total = mano.reduce((acc, c) => acc + c.valor, 0);
+      let ases = mano.filter(c => c.valor === 11).length;
+      while (total > 21 && ases > 0) {
+        total -= 10;
+        ases--;
       }
-    }
-    return deckNuevo;
-  }
+      return total;
+    };
 
-  function mezclarDeck(deck) {
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    return deck;
-  }
+    const pedirCarta = () => {
+      jugador.push(getCarta());
+      mostrarCartas();
+      const puntos = calcularPuntos(jugador);
+      if (puntos > 21) terminarJuego("Perdiste");
+    };
 
-  function valorCarta(carta) {
-    if (['J','Q','K'].includes(carta.valor)) return 10;
-    if (carta.valor === 'A') return 11;
-    return parseInt(carta.valor);
-  }
-
-  function calcularPuntos(mano) {
-    let puntos = 0;
-    let ases = 0;
-    for (const carta of mano) {
-      puntos += valorCarta(carta);
-      if (carta.valor === 'A') ases++;
-    }
-    while (puntos > 21 && ases > 0) {
-      puntos -= 10;
-      ases--;
-    }
-    return puntos;
-  }
-
-  function mostrarCartas() {
-    cartasJugadorDiv.innerHTML = '';
-    cartasDealerDiv.innerHTML = '';
-
-    // Dealer muestra la primera carta visible y la segunda oculta si turno jugador
-    dealerMano.forEach((carta, i) => {
-      const divCarta = document.createElement('div');
-      divCarta.classList.add('carta');
-      if (i === 1 && turnoJugando) {
-        divCarta.classList.add('oculta');
-        divCarta.textContent = '';
+    const plantarse = () => {
+      while (calcularPuntos(dealer) < 17) {
+        dealer.push(getCarta());
+      }
+      mostrarCartas();
+      const puntosJugador = calcularPuntos(jugador);
+      const puntosDealer = calcularPuntos(dealer);
+      if (puntosDealer > 21 || puntosJugador > puntosDealer) {
+        terminarJuego("Ganaste", true);
+      } else if (puntosJugador < puntosDealer) {
+        terminarJuego("Perdiste");
       } else {
-        divCarta.textContent = carta.valor + carta.palo;
+        terminarJuego("Empate", false, true);
       }
-      cartasDealerDiv.appendChild(divCarta);
-    });
+    };
 
-    jugadorMano.forEach(carta => {
-      const divCarta = document.createElement('div');
-      divCarta.classList.add('carta');
-      divCarta.textContent = carta.valor + carta.palo;
-      cartasJugadorDiv.appendChild(divCarta);
-    });
+    const doblarApuesta = () => {
+      if (saldo < apuesta * 2) return alert("No tienes saldo suficiente para doblar.");
+      apuesta *= 2;
+      document.getElementById("apuesta").value = apuesta;
+      doblado = true;
+      pedirCarta();
+      plantarse();
+    };
 
-    puntosJugadorSpan.textContent = `Puntos: ${calcularPuntos(jugadorMano)}`;
-    if (!turnoJugando) {
-      puntosDealerSpan.textContent = `Puntos: ${calcularPuntos(dealerMano)}`;
-    } else {
-      const primeraCarta = dealerMano[0];
-      puntosDealerSpan.textContent = `Puntos: ${valorCarta(primeraCarta)}`;
-    }
-  }
+    const terminarJuego = (mensaje, ganar = false, empate = false) => {
+      document.getElementById("resultado").textContent = mensaje;
+      if (!apuesta) return;
 
-  function iniciarJuego() {
-    deck = mezclarDeck(crearDeck());
-    jugadorMano = [];
-    dealerMano = [];
-    mensajeDiv.textContent = '';
-    turnoJugando = true;
-    doblado = false;
+      let nuevoSaldo = saldo;
+      if (ganar) {
+        const puntos = calcularPuntos(jugador);
+        nuevoSaldo += puntos === 21 && jugador.length === 2 ? apuesta * 1.5 : apuesta;
+      } else if (!empate) {
+        nuevoSaldo -= apuesta;
+      }
 
-    if (jugadorSaldo < apuesta) {
-      mensajeDiv.textContent = "No tienes saldo suficiente para apostar.";
-      deshabilitarBotones(true);
-      return;
-    }
-    deshabilitarBotones(false);
-    btnReiniciar.disabled = true;
+      db.ref("usuarios/" + uid + "/saldo").set(nuevoSaldo);
+      saldo = nuevoSaldo;
+      document.getElementById("saldo").textContent = saldo;
+    };
 
-    // Reparto inicial
-    jugadorMano.push(deck.pop());
-    dealerMano.push(deck.pop());
-    jugadorMano.push(deck.pop());
-    dealerMano.push(deck.pop());
-
-    mostrarCartas();
-
-    // Si jugador tiene blackjack automático
-    if (calcularPuntos(jugadorMano) === 21) {
-      turnoJugando = false;
+    const reiniciar = () => {
+      apuesta = parseInt(document.getElementById("apuesta").value) || 0;
+      jugador = [getCarta(), getCarta()];
+      dealer = [getCarta()];
+      doblado = false;
+      document.getElementById("resultado").textContent = "";
       mostrarCartas();
-      finalizarJuego(true);
-    }
-  }
+    };
 
-  function deshabilitarBotones(deshabilitar) {
-    btnPedir.disabled = deshabilitar;
-    btnPlantarse.disabled = deshabilitar;
-    btnDoblar.disabled = deshabilitar || doblado; // no permitir doblar más de una vez
-  }
-
-  btnPedir.addEventListener('click', () => {
-    if (!turnoJugando) return;
-    jugadorMano.push(deck.pop());
-    mostrarCartas();
-
-    const puntos = calcularPuntos(jugadorMano);
-    if (puntos > 21) {
-      turnoJugando = false;
-      finalizarJuego(false);
-    }
-  });
-
-  btnPlantarse.addEventListener('click', () => {
-    if (!turnoJugando) return;
-    turnoJugando = false;
-    jugarDealer();
-  });
-
-  btnDoblar.addEventListener('click', () => {
-    if (!turnoJugando) return;
-    if (jugadorSaldo < apuesta * 2) {
-      mensajeDiv.textContent = "Saldo insuficiente para doblar.";
-      return;
-    }
-    apuesta *= 2;
-    jugadorSaldo -= apuesta / 2; // descontamos la mitad extra para doblar
-    saldoSpan.textContent = jugadorSaldo;
-    jugadorMano.push(deck.pop());
-    mostrarCartas();
-    turnoJugando = false;
-    doblado = true;
-    jugarDealer();
-  });
-
-  btnReiniciar.addEventListener('click', () => {
-    iniciarJuego();
-  });
-
-  function jugarDealer() {
-    mostrarCartas();
-    let puntosDealer = calcularPuntos(dealerMano);
-    while (puntosDealer < 17) {
-      dealerMano.push(deck.pop());
-      puntosDealer = calcularPuntos(dealerMano);
-      mostrarCartas();
-    }
-    finalizarJuego();
-  }
-
-  function finalizarJuego(blackjackAutomatico = false) {
-    const puntosJugador = calcularPuntos(jugadorMano);
-    const puntosDealer = calcularPuntos(dealerMano);
-    let mensajeResultado = '';
-    let ganancia = 0;
-
-    if (blackjackAutomatico) {
-      mensajeResultado = "¡Blackjack! Ganaste 1.5x la apuesta.";
-      ganancia = apuesta * 1.5;
-      jugadorSaldo += ganancia;
-    } else if (puntosJugador > 21) {
-      mensajeResultado = "Te pasaste. Perdiste la apuesta.";
-      ganancia = 0;
-    } else if (puntosDealer > 21) {
-      mensajeResultado = "El dealer se pasó. Ganaste la apuesta.";
-      ganancia = apuesta;
-      jugadorSaldo += ganancia;
-    } else if (puntosJugador === puntosDealer) {
-      mensajeResultado = "Empate. Recuperas tu apuesta.";
-      ganancia = apuesta;
-      jugadorSaldo += ganancia;
-    } else if (puntosJugador > puntosDealer) {
-      mensajeResultado = "Ganaste la apuesta.";
-      ganancia = apuesta;
-      jugadorSaldo += ganancia;
-    } else {
-      mensajeResultado = "Perdiste la apuesta.";
-      ganancia = 0;
-    }
-
-    saldoSpan.textContent = jugadorSaldo;
-
-    mensajeDiv.textContent = mensajeResultado;
-    deshabilitarBotones(true);
-    btnReiniciar.disabled = false;
-
-    // Actualizar saldo en Firebase
-    const uid = auth.currentUser.uid;
-    db.ref('usuarios/' + uid + '/saldo').set(jugadorSaldo);
-  }
-</script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return location.href = "../login.html";
+      uid = user.uid;
+      const saldoRef = db.ref('usuarios/' + uid + '/saldo');
+      saldoRef.once('value').then(snapshot => {
+        saldo = snapshot.val() ?? 1000;
+        document.getElementById("saldo").textContent = saldo;
+        if (snapshot.val() === null) {
+          db.ref('usuarios/' + uid).set({ saldo: 1000 });
+        }
+        reiniciar();
+      });
+    });
+  </script>
 
 </body>
 </html>
