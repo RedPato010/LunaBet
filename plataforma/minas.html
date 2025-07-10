@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Juego de Minas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('assets/fondos/mesa_minas.jpg') no-repeat center center;
+      background-size: cover;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .saldo-container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .casilla {
+      width: 60px;
+      height: 60px;
+      background: #222;
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .casilla.abierta {
+      background: #444;
+    }
+
+    .casilla.mina {
+      background: #b30000;
+    }
+
+    input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 100px;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      background: #ff3333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #resultado {
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Juego de Minas</h1>
+
+  <div class="saldo-container">
+    Saldo: $<span id="saldo">0</span><br />
+    Apuesta: <input type="number" id="apuesta" min="1" value="100" />
+  </div>
+
+  <br>
+  <button onclick="iniciarJuego()">Iniciar Juego</button>
+
+  <div class="grid" id="tablero"></div>
+
+  <div id="resultado"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    let uid = null;
+    let saldo = 0;
+    let apuesta = 0;
+    let minas = [];
+    let juegoActivo = false;
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return location.href = "../login.html";
+      uid = user.uid;
+      const saldoRef = db.ref("usuarios/" + uid + "/saldo");
+      saldoRef.once("value").then(snapshot => {
+        saldo = snapshot.val() ?? 1000;
+        document.getElementById("saldo").textContent = saldo;
+        if (snapshot.val() === null) {
+          db.ref("usuarios/" + uid).set({ saldo: 1000 });
+        }
+      });
+    });
+
+    function iniciarJuego() {
+      apuesta = parseInt(document.getElementById("apuesta").value);
+      if (isNaN(apuesta) || apuesta <= 0 || apuesta > saldo) {
+        document.getElementById("resultado").textContent = "Apuesta no válida.";
+        return;
+      }
+
+      document.getElementById("resultado").textContent = "";
+      minas = [];
+      juegoActivo = true;
+
+      const totalCasillas = 25;
+      const cantidadMinas = 5;
+
+      while (minas.length < cantidadMinas) {
+        const indice = Math.floor(Math.random() * totalCasillas);
+        if (!minas.includes(indice)) minas.push(indice);
+      }
+
+      const tablero = document.getElementById("tablero");
+      tablero.innerHTML = "";
+
+      for (let i = 0; i < totalCasillas; i++) {
+        const div = document.createElement("div");
+        div.classList.add("casilla");
+        div.dataset.index = i;
+        div.onclick = () => seleccionarCasilla(div, i);
+        tablero.appendChild(div);
+      }
+    }
+
+    function seleccionarCasilla(casilla, index) {
+      if (!juegoActivo || casilla.classList.contains("abierta")) return;
+
+      casilla.classList.add("abierta");
+
+      if (minas.includes(index)) {
+        casilla.classList.add("mina");
+        casilla.textContent = "💣";
+        document.getElementById("resultado").textContent = "Perdiste. 💥";
+        actualizarSaldo(-apuesta);
+        juegoActivo = false;
+      } else {
+        casilla.textContent = "✅";
+        actualizarSaldo(apuesta / 10);
+      }
+    }
+
+    function actualizarSaldo(cambio) {
+      saldo += cambio;
+      if (saldo < 0) saldo = 0;
+      document.getElementById("saldo").textContent = saldo;
+      db.ref("usuarios/" + uid + "/saldo").set(saldo);
+    }
+  </script>
+
+</body>
+</html>
