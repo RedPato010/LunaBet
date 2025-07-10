@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cargar créditos - LunaBet</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <form class="form-box" id="cargarForm">
+    <h2>Cargar créditos</h2>
+    <input type="number" id="monto" placeholder="Monto a cargar ($)" required min="100" />
+    <button type="submit">Generar link de pago</button>
+    <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
+  </form>
+
+  <script>
+    document.getElementById('cargarForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const monto = document.getElementById('monto').value;
+      alert(`Simulando carga de $${monto}. Aquí iría el link de pago de Mercado Pago.`);
+      // En el futuro, redireccionar a link real generado por backend
+    });
+  </script>
+
+</body>
+</html>
