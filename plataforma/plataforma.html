@@ -2,57 +2,189 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Plataforma de Juego</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plataforma Ruleta</title>
+  <style>
+    /* Mantengo tu estilo original */
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #ruleta {
+      width: 300px;
+      height: 300px;
+      border: 8px solid #555;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px #ff3333;
+    }
+    #ruleta canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    #flecha {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #ff3333;
+      z-index: 10;
+    }
+    button {
+      margin-top: 30px;
+      padding: 12px 30px;
+      font-size: 16px;
+      background: #ff3333;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:disabled {
+      background: #aa0000;
+      cursor: not-allowed;
+    }
+    #resultado {
+      margin-top: 25px;
+      font-size: 22px;
+      font-weight: bold;
+      height: 28px;
+      min-width: 200px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <h1>Plataforma de Juego</h1>
-  <div id="user-info"></div>
-  <button id="logout-btn">Cerrar sesión</button>
 
-  <hr />
-  <h2>Juego simple: número random</h2>
-  <button id="play-btn">Jugar</button>
-  <p id="result"></p>
+  <h1>Ruleta Simple</h1>
+  <div id="ruleta">
+    <div id="flecha"></div>
+    <canvas id="canvas" width="300" height="300"></canvas>
+  </div>
+  <button id="girarBtn">Girar Ruleta</button>
+  <div id="resultado"></div>
+
+  <!-- Firebase SDK para autenticación -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <script>
-    // Configurá con tus datos de Firebase
+    // Configuración Firebase (idéntica a login.html)
     const firebaseConfig = {
       apiKey: "TU_API_KEY",
       authDomain: "TU_AUTH_DOMAIN",
       projectId: "TU_PROJECT_ID",
-      // etc, lo que tengas configurado
+      // resto config
     };
 
     firebase.initializeApp(firebaseConfig);
-
     const auth = firebase.auth();
 
-    // Controlar el estado de autenticación
+    // Verificar si el usuario está logueado, sino redirigir a login
     auth.onAuthStateChanged(user => {
       if (!user) {
-        // No está logueado: redirigir al login
-        window.location.href = 'login.html'; // Cambiá por la página que tengas
-        return;
-      }
-
-      // Si está logueado, mostrar email
-      document.getElementById('user-info').textContent = 'Hola, ' + user.email;
-    });
-
-    // Botón para cerrar sesión
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      auth.signOut().then(() => {
         window.location.href = 'login.html';
-      });
+      }
     });
 
-    // Juego simple: mostrar número random al hacer click
-    document.getElementById('play-btn').addEventListener('click', () => {
-      const randomNum = Math.floor(Math.random() * 100) + 1;
-      document.getElementById('result').textContent = 'Número random: ' + randomNum;
+    // Tu código de ruleta:
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const girarBtn = document.getElementById('girarBtn');
+    const resultado = document.getElementById('resultado');
+
+    const opciones = [
+      {color: '#ff3333', label: 'Rojo'},
+      {color: '#33ff33', label: 'Verde'},
+      {color: '#3333ff', label: 'Azul'},
+      {color: '#ffff33', label: 'Amarillo'},
+      {color: '#ff33ff', label: 'Fucsia'},
+      {color: '#33ffff', label: 'Cian'},
+    ];
+
+    const numOpciones = opciones.length;
+    const anguloPorSector = 2 * Math.PI / numOpciones;
+
+    let anguloActual = 0;
+    let velocidad = 0;
+    let animando = false;
+
+    function dibujarRuleta() {
+      const radio = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radio, radio);
+      ctx.rotate(anguloActual);
+
+      for (let i = 0; i < numOpciones; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = opciones[i].color;
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radio, i * anguloPorSector, (i + 1) * anguloPorSector);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.rotate(i * anguloPorSector + anguloPorSector / 2);
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(opciones[i].label, radio - 10, 10);
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    function animar() {
+      if (!animando) return;
+      velocidad *= 0.97;
+      if (velocidad < 0.002) {
+        animando = false;
+        velocidad = 0;
+        mostrarResultado();
+      } else {
+        anguloActual += velocidad;
+        anguloActual %= 2 * Math.PI;
+        dibujarRuleta();
+        requestAnimationFrame(animar);
+      }
+    }
+
+    function mostrarResultado() {
+      const anguloFlecha = (3 * Math.PI / 2 - anguloActual + 2 * Math.PI) % (2 * Math.PI);
+      let indexResultado = Math.floor(anguloFlecha / anguloPorSector);
+      let sector = opciones[indexResultado];
+      resultado.textContent = `Resultado: ${sector.label}`;
+      girarBtn.disabled = false;
+    }
+
+    girarBtn.addEventListener('click', () => {
+      if (animando) return;
+      resultado.textContent = '';
+      velocidad = 0.3 + Math.random() * 0.3;
+      animando = true;
+      girarBtn.disabled = true;
+      animar();
     });
+
+    dibujarRuleta();
   </script>
+
 </body>
 </html>
