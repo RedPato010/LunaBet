@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú Principal - Casino LunaBet</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 32px;
+      text-align: center;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .menu button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #ff3333;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 250px;
+    }
+
+    .menu button:hover {
+      background-color: #cc0000;
+    }
+
+    .logout {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #ccc;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎰 Bienvenido a LunaBet 🎰</h1>
+
+  <div class="menu">
+    <button onclick="location.href='ruleta.html'">🎡 Ruleta</button>
+    <button onclick="location.href='blackjack.html'">🃏 Blackjack</button>
+    <button onclick="location.href='dados.html'">🎲 Dados</button>
+    <button onclick="location.href='minas.html'">💣 Minas</button>
+  </div>
+
+  <div class="logout" onclick="cerrarSesion()">Cerrar sesión</div>
+
+  <!-- Firebase para controlar si hay sesión -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      projectId: "lunabet-73609",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "../login.html";
+      }
+    });
+
+    function cerrarSesion() {
+      auth.signOut().then(() => {
+        window.location.href = "../login.html";
+      });
+    }
+  </script>
+
+</body>
+</html>
