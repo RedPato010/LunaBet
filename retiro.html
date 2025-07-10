@@ -16,14 +16,23 @@
     <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
   </form>
 
-  <script>
-    document.getElementById('retiroForm').addEventListener('submit', e => {
-      e.preventDefault();
-      const monto = document.getElementById('monto').value;
-      const cvu = document.getElementById('cvu').value;
-      alert(`Solicitud de retiro enviada:\nMonto: $${monto}\nDestino: ${cvu}\n(En la versión real esto será automático)`);
-    });
-  </script>
+  <script src="js/saldo.js"></script>
+<script>
+  document.getElementById('retiroForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const monto = parseFloat(document.getElementById('monto').value);
+    const cvu = document.getElementById('cvu').value;
+    if (monto < 500) return alert('El mínimo de retiro es $500');
+    const exito = descontarSaldo(monto);
+    if (!exito) {
+      alert('Saldo insuficiente.');
+      return;
+    }
+    alert(`Retiro simulado de $${monto} a ${cvu}.\nSaldo actualizado.`);
+    window.location.href = 'dashboard.html';
+  });
+</script>
+
 
 </body>
 </html>
