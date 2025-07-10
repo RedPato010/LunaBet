@@ -3,92 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plataforma Ruleta</title>
+  <title>Plataforma - Lunabet</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #222;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
-    }
-    #saldo {
-      font-size: 20px;
-      margin-bottom: 20px;
-    }
-    h1 {
-      margin-bottom: 20px;
-    }
-    #ruleta {
-      width: 300px;
-      height: 300px;
-      border: 8px solid #555;
-      border-radius: 50%;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 15px #ff3333;
-    }
-    #ruleta canvas {
-      display: block;
-      margin: 0 auto;
-    }
-    #flecha {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; 
-      height: 0; 
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #ff3333;
-      z-index: 10;
-    }
-    button {
-      margin-top: 30px;
-      padding: 12px 30px;
-      font-size: 16px;
-      background: #ff3333;
-      border: none;
-      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      background: #121212;
       color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
     }
-    button:disabled {
-      background: #aa0000;
-      cursor: not-allowed;
+
+    header {
+      background: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 30px;
+      border-bottom: 1px solid #333;
     }
-    #resultado {
-      margin-top: 25px;
-      font-size: 22px;
+
+    .logo {
+      font-size: 24px;
       font-weight: bold;
-      height: 28px;
-      min-width: 200px;
+      color: #ff3333;
+    }
+
+    .saldo {
+      font-size: 16px;
+      background: #222;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .menu-item {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .submenu {
+      display: none;
+      position: absolute;
+      top: 30px;
+      left: 0;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      z-index: 100;
+      flex-direction: column;
+    }
+
+    .submenu a {
+      color: white;
+      text-decoration: none;
+      padding: 6px 0;
+      display: block;
+    }
+
+    .submenu a:hover {
+      color: #ff3333;
+    }
+
+    .menu-item:hover .submenu {
+      display: flex;
+    }
+
+    main {
+      padding: 40px;
       text-align: center;
+    }
+
+    .bienvenida {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .descripcion {
+      color: #aaa;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
 
-  <div id="saldo">Saldo: --</div>
+  <header>
+    <div class="logo">LunaBet</div>
 
-  <h1>Ruleta Simple</h1>
-  <div id="ruleta">
-    <div id="flecha"></div>
-    <canvas id="canvas" width="300" height="300"></canvas>
-  </div>
-  <button id="girarBtn">Girar Ruleta</button>
-  <div id="resultado"></div>
+    <nav>
+      <div class="menu-item">
+        🎮 Mini Juegos
+        <div class="submenu">
+          <a href="ruleta.html">Ruleta</a>
+          <a href="blackjack.html">Blackjack</a>
+          <a href="dados.html">Dados</a>
+          <a href="minas.html">Minas</a>
+        </div>
+      </div>
+      <div class="saldo">Saldo: $<span id="saldo">0</span></div>
+    </nav>
+  </header>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <main>
+    <div class="bienvenida">¡Bienvenido a la plataforma de juegos!</div>
+    <div class="descripcion">Elige un juego desde el menú para comenzar a jugar.</div>
+  </main>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -104,111 +132,21 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db = firebase.database();
 
-    const saldoDiv = document.getElementById('saldo');
-
+    // Verifica si el usuario está autenticado
     auth.onAuthStateChanged(user => {
       if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
       } else {
-        // Leer saldo
-        db.collection('users').doc(user.uid).get()
-          .then(doc => {
-            if (doc.exists) {
-              saldoDiv.textContent = "Saldo: " + doc.data().saldo;
-            } else {
-              saldoDiv.textContent = "Saldo no encontrado";
-            }
-          })
-          .catch(error => {
-            saldoDiv.textContent = "Error al obtener saldo";
-            console.error(error);
-          });
+        const uid = user.uid;
+        const saldoRef = db.ref('usuarios/' + uid + '/saldo');
+        saldoRef.once('value').then(snapshot => {
+          const saldo = snapshot.val() ?? 0;
+          document.getElementById("saldo").textContent = saldo;
+        });
       }
     });
-
-    // Código de la ruleta:
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const girarBtn = document.getElementById('girarBtn');
-    const resultado = document.getElementById('resultado');
-
-    const opciones = [
-      {color: '#ff3333', label: 'Rojo'},
-      {color: '#33ff33', label: 'Verde'},
-      {color: '#3333ff', label: 'Azul'},
-      {color: '#ffff33', label: 'Amarillo'},
-      {color: '#ff33ff', label: 'Fucsia'},
-      {color: '#33ffff', label: 'Cian'},
-    ];
-
-    const numOpciones = opciones.length;
-    const anguloPorSector = 2 * Math.PI / numOpciones;
-
-    let anguloActual = 0;
-    let velocidad = 0;
-    let animando = false;
-
-    function dibujarRuleta() {
-      const radio = canvas.width / 2;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.translate(radio, radio);
-      ctx.rotate(anguloActual);
-
-      for (let i = 0; i < numOpciones; i++) {
-        ctx.beginPath();
-        ctx.fillStyle = opciones[i].color;
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radio, i * anguloPorSector, (i + 1) * anguloPorSector);
-        ctx.lineTo(0, 0);
-        ctx.fill();
-
-        ctx.save();
-        ctx.fillStyle = 'white';
-        ctx.rotate(i * anguloPorSector + anguloPorSector / 2);
-        ctx.textAlign = 'right';
-        ctx.font = 'bold 18px Arial';
-        ctx.fillText(opciones[i].label, radio - 10, 10);
-        ctx.restore();
-      }
-      ctx.restore();
-    }
-
-    function animar() {
-      if (!animando) return;
-      velocidad *= 0.97;
-      if (velocidad < 0.002) {
-        animando = false;
-        velocidad = 0;
-        mostrarResultado();
-      } else {
-        anguloActual += velocidad;
-        anguloActual %= 2 * Math.PI;
-        dibujarRuleta();
-        requestAnimationFrame(animar);
-      }
-    }
-
-    function mostrarResultado() {
-      const anguloFlecha = (3 * Math.PI / 2 - anguloActual + 2 * Math.PI) % (2 * Math.PI);
-      let indexResultado = Math.floor(anguloFlecha / anguloPorSector);
-      let sector = opciones[indexResultado];
-      resultado.textContent = `Resultado: ${sector.label}`;
-      girarBtn.disabled = false;
-    }
-
-    girarBtn.addEventListener('click', () => {
-      if (animando) return;
-      resultado.textContent = '';
-      velocidad = 0.3 + Math.random() * 0.3;
-      animando = true;
-      girarBtn.disabled = true;
-      animar();
-    });
-
-    dibujarRuleta();
   </script>
 
 </body>
