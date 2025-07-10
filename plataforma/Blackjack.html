@@ -1,109 +1,155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blackjack - Lunabet</title>
-<style>
-  body {
-    background: url('fondo-mesa.jpg') center/cover no-repeat;
-    background-color: #095228;
-    font-family: Arial, sans-serif;
-    color: white;
-    margin: 0; padding: 0;
-  }
-  .contenedor {
-    max-width: 480px;
-    margin: auto;
-    padding: 20px;
-    background: rgba(0,0,0,0.6);
-  }
-  h1, h2 {
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  #saldo, #apuesta, #mensaje {
-    text-align: center;
-    margin: 8px 0;
-    font-size: 18px;
-    font-weight: bold;
-  }
-  #acciones, #info-apuesta, #dealer, #jugador {
-    text-align: center;
-    margin: 10px 0;
-  }
-  input, button {
-    font-size: 16px;
-    padding: 8px;
-    border: none;
-    border-radius: 5px;
-  }
-  input[type=number] { width: 100px; }
-  button {
-    background: #ff3333;
-    color: white;
-    margin: 0 5px 8px 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  button:disabled { background: #660000; cursor: not-allowed; }
-  #btn-agregarSaldo { background: #33cc33; margin: 10px 0; }
-  .mano {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    min-height: 90px;
-    margin-bottom: 6px;
-  }
-  .carta {
-    width: 60px;
-    height: 90px;
-    border-radius: 5px;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px;
-    font-weight: bold;
-    position: relative;
-    opacity: 0; transform: translateY(-30px);
-    transition: all 0.4s ease;
-  }
-  .carta.mostrar {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .score {
-    font-size: 16px;
-    margin-top: 4px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blackjack - Lunabet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b3d0b;
+      color: white;
+      margin: 0; padding: 20px;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    #saldo {
+      background: #123412;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    #blackjack {
+      background: #145214;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #0f7c0f;
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .manos {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .mano {
+      width: 48%;
+      background: #0d2a0d;
+      border-radius: 12px;
+      padding: 10px;
+      box-sizing: border-box;
+      min-height: 160px;
+    }
+    .mano h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      text-align: center;
+      font-weight: normal;
+    }
+    .cartas {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .carta {
+      width: 50px;
+      height: 75px;
+      background: white;
+      color: black;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 22px;
+      user-select: none;
+      box-shadow: 1px 2px 5px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .carta.oculta {
+      background: #111;
+      border: 2px solid #333;
+      color: transparent;
+      font-size: 0;
+    }
+    #puntos-dealer, #puntos-jugador {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 8px;
+      font-size: 18px;
+    }
+    #controles {
+      margin-top: 10px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      min-width: 90px;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    #mensaje {
+      margin-top: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      height: 30px;
+      min-height: 30px;
+      text-align: center;
+      min-width: 300px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="contenedor">
-  <h1>♠ Blackjack ♠</h1>
-  <div id="saldo">Saldo: $0</div>
-  <button id="btn-agregarSaldo">+ $1000 para pruebas</button>
+<header>
+  <h2>Blackjack</h2>
+  <div>Saldo: $<span id="saldo">0</span></div>
+</header>
 
-  <div id="apuesta">Apuesta: $0</div>
-  <div id="info-apuesta">
-    <input type="number" id="input-apuesta" placeholder="Apostar $" min="1">
-    <button id="btn-apostar">Apostar</button>
+<div id="blackjack">
+  <div class="manos">
+    <div class="mano" id="dealer-mano">
+      <h3>Dealer</h3>
+      <div class="cartas" id="cartas-dealer"></div>
+      <div id="puntos-dealer"></div>
+    </div>
+    <div class="mano" id="jugador-mano">
+      <h3>Jugador</h3>
+      <div class="cartas" id="cartas-jugador"></div>
+      <div id="puntos-jugador"></div>
+    </div>
   </div>
 
-  <h2>Dealer <span id="score-dealer" class="score"></span></h2>
-  <div id="dealer" class="mano"></div>
-
-  <h2>Jugador <span id="score-jugador" class="score"></span></h2>
-  <div id="jugador" class="mano"></div>
-
-  <div id="acciones">
-    <button id="btn-pedir" disabled>Pedir</button>
-    <button id="btn-plantarse" disabled>Plantarse</button>
-    <button id="btn-doblar" disabled>Doblar</button>
-    <button id="btn-dividir" disabled>Dividir</button>
+  <div id="controles">
+    <button id="btn-pedir">Pedir Carta</button>
+    <button id="btn-plantarse">Plantarse</button>
+    <button id="btn-doblar">Doblar</button>
+    <button id="btn-reiniciar" disabled>Reiniciar</button>
   </div>
 
   <div id="mensaje"></div>
@@ -112,190 +158,261 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-  const config = {
-    apiKey: "...", authDomain: "...", projectId: "...",
-    databaseURL: "...", storageBucket: "...",
-    messagingSenderId: "...", appId: "...", measurementId: "..."
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+    authDomain: "lunabet-73609.firebaseapp.com",
+    databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+    projectId: "lunabet-73609",
+    storageBucket: "lunabet-73609.firebasestorage.app",
+    messagingSenderId: "45582135337",
+    appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+    measurementId: "G-0XC4PX3HK9"
   };
-  firebase.initializeApp(config);
+
+  firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-  const db = firebase.firestore();
+  const db = firebase.database();
 
-  let uid, saldo = 0, apuesta = 0;
-  let deck = [], dealerCartas = [], jugadorCartas = [];
-  let turnoJugador = false;
+  // Variables para el juego
+  let deck = [];
+  let jugadorMano = [];
+  let dealerMano = [];
+  let jugadorSaldo = 0;
+  let apuesta = 10; // fija para testeo, luego podes pedir input
+  let jugadorPuedePedir = true;
+  let turnoJugando = true;
+  let doblado = false;
 
-  const ui = {
-    saldo: document.getElementById('saldo'),
-    scoreDealer: document.getElementById('score-dealer'),
-    scoreJugador: document.getElementById('score-jugador'),
-    apuesta: document.getElementById('apuesta'),
-    mensaje: document.getElementById('mensaje'),
-    inputApuesta: document.getElementById('input-apuesta'),
-    btnApostar: document.getElementById('btn-apostar'),
-    btnPedir: document.getElementById('btn-pedir'),
-    btnPlantarse: document.getElementById('btn-plantarse'),
-    btnDoblar: document.getElementById('btn-doblar'),
-    btnDividir: document.getElementById('btn-dividir'),
-    btnAgregarSaldo: document.getElementById('btn-agregarSaldo'),
-    manoDealer: document.getElementById('dealer'),
-    manoJugador: document.getElementById('jugador')
-  };
+  // Elementos DOM
+  const cartasJugadorDiv = document.getElementById('cartas-jugador');
+  const cartasDealerDiv = document.getElementById('cartas-dealer');
+  const puntosJugadorSpan = document.getElementById('puntos-jugador');
+  const puntosDealerSpan = document.getElementById('puntos-dealer');
+  const mensajeDiv = document.getElementById('mensaje');
+  const saldoSpan = document.getElementById('saldo');
+  const btnPedir = document.getElementById('btn-pedir');
+  const btnPlantarse = document.getElementById('btn-plantarse');
+  const btnDoblar = document.getElementById('btn-doblar');
+  const btnReiniciar = document.getElementById('btn-reiniciar');
 
-  auth.onAuthStateChanged(async user => {
-    if (!user) return window.location.href = 'login.html';
-    uid = user.uid;
-    const doc = await db.collection('usuarios').doc(uid).get();
-    saldo = doc.exists && doc.data().saldo >= 0 ? doc.data().saldo : 0;
-    mostrarSaldo();
+  // Carga saldo desde Firebase
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'login.html';
+    } else {
+      const uid = user.uid;
+      db.ref('usuarios/' + uid + '/saldo').once('value').then(snapshot => {
+        jugadorSaldo = snapshot.val() ?? 100; // default 100 si no existe
+        saldoSpan.textContent = jugadorSaldo;
+        iniciarJuego();
+      });
+    }
   });
 
-  function mostrarSaldo() {
-    ui.saldo.textContent = `Saldo: $${saldo}`;
-  }
-
-  async function cambiarSaldo(nuevoSaldo) {
-    saldo = nuevoSaldo;
-    await db.collection('usuarios').doc(uid).set({ saldo }, { merge: true });
-    mostrarSaldo();
-  }
-
+  // Baraja estándar 52 cartas (sin comodines)
   function crearDeck() {
-    const palos = ['♠','♥','♦','♣'], vals=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    const b = [];
-    palos.forEach(p => vals.forEach(v => b.push({ valor:v,palo:p})));
-    return b.sort(()=>Math.random()-0.5);
+    const palos = ['♠', '♥', '♦', '♣'];
+    const valores = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    const deckNuevo = [];
+    for (const palo of palos) {
+      for (const valor of valores) {
+        deckNuevo.push({ valor, palo });
+      }
+    }
+    return deckNuevo;
   }
 
-  function valorMano(mano) {
-    let t=0, a=0;
-    mano.forEach(c => {
-      if (['J','Q','K'].includes(c.valor)) t+=10;
-      else if (c.valor==='A') { t+=11; a++ }
-      else t+=+c.valor;
+  function mezclarDeck(deck) {
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function valorCarta(carta) {
+    if (['J','Q','K'].includes(carta.valor)) return 10;
+    if (carta.valor === 'A') return 11;
+    return parseInt(carta.valor);
+  }
+
+  function calcularPuntos(mano) {
+    let puntos = 0;
+    let ases = 0;
+    for (const carta of mano) {
+      puntos += valorCarta(carta);
+      if (carta.valor === 'A') ases++;
+    }
+    while (puntos > 21 && ases > 0) {
+      puntos -= 10;
+      ases--;
+    }
+    return puntos;
+  }
+
+  function mostrarCartas() {
+    cartasJugadorDiv.innerHTML = '';
+    cartasDealerDiv.innerHTML = '';
+
+    // Dealer muestra la primera carta visible y la segunda oculta si turno jugador
+    dealerMano.forEach((carta, i) => {
+      const divCarta = document.createElement('div');
+      divCarta.classList.add('carta');
+      if (i === 1 && turnoJugando) {
+        divCarta.classList.add('oculta');
+        divCarta.textContent = '';
+      } else {
+        divCarta.textContent = carta.valor + carta.palo;
+      }
+      cartasDealerDiv.appendChild(divCarta);
     });
-    while (t>21 && a>0) { t-=10; a-- }
-    return t;
-  }
 
-  function crearCartaDOM(c) {
-    const d = document.createElement('div');
-    d.className = 'carta';
-    d.textContent = c.valor + c.palo;
-    if (c.palo==='♥'||c.palo==='♦') d.style.color='red';
-    setTimeout(()=>d.classList.add('mostrar'),50);
-    return d;
-  }
-
-  function mostrarMano(div, mano, ocultarPrimera=false) {
-    div.innerHTML = '';
-    mano.forEach((c,i) => {
-      if (ocultarPrimera && i===0)
-        div.appendChild(crearCartaDOM({valor:'?',palo:''}));
-      else
-        div.appendChild(crearCartaDOM(c));
+    jugadorMano.forEach(carta => {
+      const divCarta = document.createElement('div');
+      divCarta.classList.add('carta');
+      divCarta.textContent = carta.valor + carta.palo;
+      cartasJugadorDiv.appendChild(divCarta);
     });
+
+    puntosJugadorSpan.textContent = `Puntos: ${calcularPuntos(jugadorMano)}`;
+    if (!turnoJugando) {
+      puntosDealerSpan.textContent = `Puntos: ${calcularPuntos(dealerMano)}`;
+    } else {
+      const primeraCarta = dealerMano[0];
+      puntosDealerSpan.textContent = `Puntos: ${valorCarta(primeraCarta)}`;
+    }
   }
 
-  function actualizarPuntajes() {
-    ui.scoreDealer.textContent = `(${valorMano(dealerCartas)})`;
-    ui.scoreJugador.textContent = `(${valorMano(jugadorCartas)})`;
-  }
+  function iniciarJuego() {
+    deck = mezclarDeck(crearDeck());
+    jugadorMano = [];
+    dealerMano = [];
+    mensajeDiv.textContent = '';
+    turnoJugando = true;
+    doblado = false;
 
-  function habilitarAccion(act) {
-    ui.btnPedir.disabled = !act;
-    ui.btnPlantarse.disabled = !act;
-    ui.btnDoblar.disabled = !(act && apuesta*2 <= saldo+apuesta);
-    ui.btnDividir.disabled = true;
-  }
-
-  ui.btnApostar.onclick = async () => {
-    const v = +ui.inputApuesta.value;
-    if (!v || v<1 || v>saldo) {
-      ui.mensaje.textContent = v>saldo ? 'Saldo insuficiente' : 'Apuesta inválida';
+    if (jugadorSaldo < apuesta) {
+      mensajeDiv.textContent = "No tienes saldo suficiente para apostar.";
+      deshabilitarBotones(true);
       return;
     }
-    apuesta = v;
-    await cambiarSaldo(saldo - apuesta);
-    deck = crearDeck();
-    dealerCartas = [deck.pop(), deck.pop()];
-    jugadorCartas = [deck.pop(), deck.pop()];
-    mostrarMano(ui.manoDealer, dealerCartas, true);
-    mostrarMano(ui.manoJugador, jugadorCartas);
-    actualizarPuntajes();
+    deshabilitarBotones(false);
+    btnReiniciar.disabled = true;
 
-    turnoJugador = true;
-    habilitarAccion(true);
-    ui.apuesta.textContent = `Apuesta: $${apuesta}`;
-    ui.mensaje.textContent = '';
-  };
+    // Reparto inicial
+    jugadorMano.push(deck.pop());
+    dealerMano.push(deck.pop());
+    jugadorMano.push(deck.pop());
+    dealerMano.push(deck.pop());
 
-  ui.btnPedir.onclick = () => {
-    if (!turnoJugador) return;
-    jugadorCartas.push(deck.pop());
-    mostrarMano(ui.manoJugador, jugadorCartas);
-    actualizarPuntajes();
-    if (valorMano(jugadorCartas) > 21) terminoJuego();
-  };
+    mostrarCartas();
 
-  ui.btnPlantarse.onclick = async () => {
-    if (!turnoJugador) return;
-    turnoJugador = false;
-    mostrarMano(ui.manoDealer, dealerCartas, false);
-    while (valorMano(dealerCartas) < 17) {
-      dealerCartas.push(deck.pop());
-      mostrarMano(ui.manoDealer, dealerCartas);
-      await new Promise(r => setTimeout(r, 500));
+    // Si jugador tiene blackjack automático
+    if (calcularPuntos(jugadorMano) === 21) {
+      turnoJugando = false;
+      mostrarCartas();
+      finalizarJuego(true);
     }
-    terminoJuego();
-  };
-
-  ui.btnDoblar.onclick = async () => {
-    if (!turnoJugador || apuesta*2 > saldo+apuesta) return;
-    await cambiarSaldo(saldo - apuesta);
-    apuesta *= 2;
-    ui.apuesta.textContent = `Apuesta: $${apuesta}`;
-    jugadorCartas.push(deck.pop());
-    mostrarMano(ui.manoJugador, jugadorCartas);
-    actualizarPuntajes();
-    turnoJugador = false;
-    terminoJuego();
-  };
-
-  async function terminoJuego() {
-    turnoJugador = false;
-    mostrarMano(ui.manoDealer, dealerCartas, false);
-    actualizarPuntajes();
-
-    const pj = valorMano(jugadorCartas), pd = valorMano(dealerCartas);
-    let ganancia = 0;
-    if (pj === 21 && jugadorCartas.length === 2) {
-      ganancia = apuesta * 2.5;
-      ui.mensaje.textContent = `Blackjack! Ganaste $${ganancia.toFixed(2)}`;
-    } else if (pj > 21) {
-      ui.mensaje.textContent = 'Te pasaste. Perdiste.';
-    } else if (pd > 21 || pj > pd) {
-      ganancia = apuesta * 2;
-      ui.mensaje.textContent = `¡Ganaste! Ganaste $${ganancia}`;
-    } else if (pj === pd) {
-      ganancia = apuesta;
-      ui.mensaje.textContent = 'Empate, se devuelve la apuesta.';
-    } else {
-      ui.mensaje.textContent = 'Perdiste la apuesta.';
-    }
-
-    if (ganancia > 0) await cambiarSaldo(saldo + ganancia);
-    habilitarAccion(false);
-    apuesta = 0;
   }
 
-  ui.btnAgregarSaldo.onclick = async () => {
-    await cambiarSaldo(saldo + 1000);
-    ui.mensaje.textContent = 'Se agregaron $1000 al saldo para pruebas.';
-  };
+  function deshabilitarBotones(deshabilitar) {
+    btnPedir.disabled = deshabilitar;
+    btnPlantarse.disabled = deshabilitar;
+    btnDoblar.disabled = deshabilitar || doblado; // no permitir doblar más de una vez
+  }
+
+  btnPedir.addEventListener('click', () => {
+    if (!turnoJugando) return;
+    jugadorMano.push(deck.pop());
+    mostrarCartas();
+
+    const puntos = calcularPuntos(jugadorMano);
+    if (puntos > 21) {
+      turnoJugando = false;
+      finalizarJuego(false);
+    }
+  });
+
+  btnPlantarse.addEventListener('click', () => {
+    if (!turnoJugando) return;
+    turnoJugando = false;
+    jugarDealer();
+  });
+
+  btnDoblar.addEventListener('click', () => {
+    if (!turnoJugando) return;
+    if (jugadorSaldo < apuesta * 2) {
+      mensajeDiv.textContent = "Saldo insuficiente para doblar.";
+      return;
+    }
+    apuesta *= 2;
+    jugadorSaldo -= apuesta / 2; // descontamos la mitad extra para doblar
+    saldoSpan.textContent = jugadorSaldo;
+    jugadorMano.push(deck.pop());
+    mostrarCartas();
+    turnoJugando = false;
+    doblado = true;
+    jugarDealer();
+  });
+
+  btnReiniciar.addEventListener('click', () => {
+    iniciarJuego();
+  });
+
+  function jugarDealer() {
+    mostrarCartas();
+    let puntosDealer = calcularPuntos(dealerMano);
+    while (puntosDealer < 17) {
+      dealerMano.push(deck.pop());
+      puntosDealer = calcularPuntos(dealerMano);
+      mostrarCartas();
+    }
+    finalizarJuego();
+  }
+
+  function finalizarJuego(blackjackAutomatico = false) {
+    const puntosJugador = calcularPuntos(jugadorMano);
+    const puntosDealer = calcularPuntos(dealerMano);
+    let mensajeResultado = '';
+    let ganancia = 0;
+
+    if (blackjackAutomatico) {
+      mensajeResultado = "¡Blackjack! Ganaste 1.5x la apuesta.";
+      ganancia = apuesta * 1.5;
+      jugadorSaldo += ganancia;
+    } else if (puntosJugador > 21) {
+      mensajeResultado = "Te pasaste. Perdiste la apuesta.";
+      ganancia = 0;
+    } else if (puntosDealer > 21) {
+      mensajeResultado = "El dealer se pasó. Ganaste la apuesta.";
+      ganancia = apuesta;
+      jugadorSaldo += ganancia;
+    } else if (puntosJugador === puntosDealer) {
+      mensajeResultado = "Empate. Recuperas tu apuesta.";
+      ganancia = apuesta;
+      jugadorSaldo += ganancia;
+    } else if (puntosJugador > puntosDealer) {
+      mensajeResultado = "Ganaste la apuesta.";
+      ganancia = apuesta;
+      jugadorSaldo += ganancia;
+    } else {
+      mensajeResultado = "Perdiste la apuesta.";
+      ganancia = 0;
+    }
+
+    saldoSpan.textContent = jugadorSaldo;
+
+    mensajeDiv.textContent = mensajeResultado;
+    deshabilitarBotones(true);
+    btnReiniciar.disabled = false;
+
+    // Actualizar saldo en Firebase
+    const uid = auth.currentUser.uid;
+    db.ref('usuarios/' + uid + '/saldo').set(jugadorSaldo);
+  }
 </script>
 
 </body>
