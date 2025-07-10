@@ -4,80 +4,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Registro - LunaBet</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #222;
-    }
-    form {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
-      width: 320px;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    input {
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    button {
-      background-color: #2f855a;
-      border: none;
-      color: white;
-      padding: 0.9rem;
-      border-radius: 5px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background-color 0.25s ease;
-    }
-    button:hover {
-      background-color: #276749;
-    }
-    .back-link {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-    }
-    .back-link a {
-      color: #2f855a;
-      text-decoration: none;
-    }
-    .back-link a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-  <form id="registerForm">
-    <h2>Registrate en LunaBet</h2>
-    <input type="text" id="username" placeholder="Nombre de usuario" required />
+  <form class="form-box" id="registerForm">
+    <h2>Registro</h2>
     <input type="email" id="email" placeholder="Correo electrónico" required />
-    <input type="password" id="password" placeholder="Contraseña" required />
-    <button type="submit">Crear cuenta</button>
-    <div class="back-link"><a href="index.html">Volver al inicio</a></div>
+    <input type="password" id="password" placeholder="Contraseña" required minlength="6" />
+    <button type="submit">Registrar</button>
+    <div class="back-link"><a href="login.html">¿Ya tienes cuenta? Iniciar sesión</a></div>
   </form>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
     const form = document.getElementById('registerForm');
-    form.addEventListener('submit', e => {
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      alert('Funcionalidad backend aún no implementada.\nPronto podrás registrarte aquí.');
+
+      const email = form.email.value;
+      const password = form.password.value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Crear documento en Firestore con saldo inicial
+        await setDoc(doc(db, "usuarios", user.uid), {
+          email: email,
+          saldo: 0
+        });
+
+        alert('Registro exitoso! Ya podés iniciar sesión.');
+        window.location.href = 'login.html';
+      } catch (error) {
+        alert('Error en el registro: ' + error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
+
     });
   </script>
 
