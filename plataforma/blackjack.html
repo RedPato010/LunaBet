@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -13,19 +13,21 @@
       text-align: center;
       padding: 20px;
     }
-
     .cartas {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin: 10px 0;
     }
-
-    .carta {
-      width: 60px;
-      transition: transform 0.3s ease, opacity 0.3s ease;
+    .carta img {
+      width: 80px;
+      height: auto;
+      border-radius: 6px;
+      transition: transform 0.2s;
     }
-
+    .carta img:hover {
+      transform: scale(1.1);
+    }
     .controles button {
       margin: 5px;
       padding: 10px 20px;
@@ -36,25 +38,17 @@
       background: #ff3333;
       color: white;
     }
-
     .saldo-container {
       background: rgba(0,0,0,0.5);
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 8px;
     }
-
     input[type="number"] {
       padding: 8px;
       font-size: 16px;
       border-radius: 4px;
       width: 100px;
-    }
-
-    #resultado {
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -78,8 +72,6 @@
   <div class="controles">
     <button onclick="pedirCarta()">Pedir Carta</button>
     <button onclick="plantarse()">Plantarse</button>
-    <button onclick="doblarApuesta()">Doblar</button>
-    <button onclick="dividir()">Dividir</button>
     <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
@@ -106,74 +98,76 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    let jugador = [], dealer = [], jugador2 = null;
+    const palos = ["C", "D", "H", "S"]; // Clubs, Diamonds, Hearts, Spades
+    const valores = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
+
+    let jugador = [], dealer = [];
     let uid = null, saldo = 0, apuesta = 0;
-    let doblado = false;
 
-    const palos = ["C", "D", "H", "S"]; // ♣ ♦ ♥ ♠
-    const valores = [1,2,3,4,5,6,7,8,9,10,10,10,11];
+    function getCarta() {
+      const valor = valores[Math.floor(Math.random() * valores.length)];
+      const palo = palos[Math.floor(Math.random() * palos.length)];
+      return { valor, palo };
+    }
 
-    const getCarta = () => {
-      let valor = valores[Math.floor(Math.random() * valores.length)];
-      let palo = palos[Math.floor(Math.random() * palos.length)];
-      return { valor, palo, display: `${valor}${palo}` };
-    };
+    function mostrarCartas() {
+      const jugadorDiv = document.getElementById("jugador");
+      const dealerDiv = document.getElementById("dealer");
 
-    const renderCartas = (cartas, contenedorId) => {
-      const div = document.getElementById(contenedorId);
-      div.innerHTML = "";
-      cartas.forEach((carta, index) => {
+      jugadorDiv.innerHTML = "";
+      dealerDiv.innerHTML = "";
+
+      jugador.forEach(c => {
         const img = document.createElement("img");
-        img.src = `assets/cartas/${getNombreArchivo(carta)}.png`;
-        img.className = "carta";
-        img.style.opacity = "0";
-        img.style.transform = "translateY(-10px)";
-        setTimeout(() => {
-          img.style.opacity = "1";
-          img.style.transform = "translateY(0)";
-        }, 100 * index);
-        div.appendChild(img);
+        img.src = `assets/cartas/${c.valor}${c.palo}.png`;
+        jugadorDiv.appendChild(img);
       });
-    };
 
-    const getNombreArchivo = (carta) => {
-      const valor = carta.valor === 11 ? "A" :
-                    carta.valor === 10 && ![10].includes(carta.valorOriginal) ? ["J","Q","K"][Math.floor(Math.random()*3)] :
-                    carta.valor;
-      return `${valor}${carta.palo}`;
-    };
+      dealer.forEach(c => {
+        const img = document.createElement("img");
+        img.src = `assets/cartas/${c.valor}${c.palo}.png`;
+        dealerDiv.appendChild(img);
+      });
 
-    const calcularPuntos = mano => {
-      let total = mano.reduce((acc, c) => acc + c.valor, 0);
-      let ases = mano.filter(c => c.valor === 11).length;
+      document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
+      document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
+    }
+
+    function calcularPuntos(mano) {
+      let total = 0;
+      let ases = 0;
+      mano.forEach(c => {
+        if (typeof c.valor === 'number') {
+          total += c.valor;
+        } else if (c.valor === 'A') {
+          total += 11;
+          ases++;
+        } else {
+          total += 10;
+        }
+      });
       while (total > 21 && ases > 0) {
         total -= 10;
         ases--;
       }
       return total;
-    };
+    }
 
-    const mostrarCartas = () => {
-      renderCartas(jugador, "jugador");
-      renderCartas(dealer, "dealer");
-      document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
-      document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
-    };
-
-    const pedirCarta = () => {
+    function pedirCarta() {
       jugador.push(getCarta());
       mostrarCartas();
       const puntos = calcularPuntos(jugador);
       if (puntos > 21) terminarJuego("Perdiste");
-    };
+    }
 
-    const plantarse = () => {
+    function plantarse() {
       while (calcularPuntos(dealer) < 17) {
         dealer.push(getCarta());
       }
       mostrarCartas();
       const puntosJugador = calcularPuntos(jugador);
       const puntosDealer = calcularPuntos(dealer);
+
       if (puntosDealer > 21 || puntosJugador > puntosDealer) {
         terminarJuego("Ganaste", true);
       } else if (puntosJugador < puntosDealer) {
@@ -181,34 +175,16 @@
       } else {
         terminarJuego("Empate", false, true);
       }
-    };
+    }
 
-    const doblarApuesta = () => {
-      if (saldo < apuesta * 2) return alert("No tienes saldo suficiente para doblar.");
-      apuesta *= 2;
-      document.getElementById("apuesta").value = apuesta;
-      doblado = true;
-      pedirCarta();
-      plantarse();
-    };
-
-    const dividir = () => {
-      if (jugador.length !== 2 || jugador[0].valor !== jugador[1].valor) {
-        alert("Solo puedes dividir si las 2 primeras cartas son iguales.");
-        return;
-      }
-      alert("Función 'Dividir' en desarrollo.");
-      // Aquí podrías duplicar la mano y jugar las dos una por una.
-    };
-
-    const terminarJuego = (mensaje, ganar = false, empate = false) => {
+    function terminarJuego(mensaje, ganar = false, empate = false) {
       document.getElementById("resultado").textContent = mensaje;
       if (!apuesta) return;
 
       let nuevoSaldo = saldo;
       if (ganar) {
         const puntos = calcularPuntos(jugador);
-        nuevoSaldo += puntos === 21 && jugador.length === 2 ? apuesta * 1.5 : apuesta;
+        nuevoSaldo += (puntos === 21 && jugador.length === 2) ? apuesta * 1.5 : apuesta;
       } else if (!empate) {
         nuevoSaldo -= apuesta;
       }
@@ -216,16 +192,15 @@
       db.ref("usuarios/" + uid + "/saldo").set(nuevoSaldo);
       saldo = nuevoSaldo;
       document.getElementById("saldo").textContent = saldo;
-    };
+    }
 
-    const reiniciar = () => {
+    function reiniciar() {
       apuesta = parseInt(document.getElementById("apuesta").value) || 0;
       jugador = [getCarta(), getCarta()];
       dealer = [getCarta()];
-      doblado = false;
       document.getElementById("resultado").textContent = "";
       mostrarCartas();
-    };
+    }
 
     auth.onAuthStateChanged(user => {
       if (!user) return location.href = "../login.html";
@@ -241,6 +216,5 @@
       });
     });
   </script>
-
 </body>
 </html>
