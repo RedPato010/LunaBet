@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Iniciar Sesión - Lunabet</title>
+  <title>Iniciar Sesión</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,16 +27,34 @@
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
-    .link-button {
-      background: none;
-      border: none;
+    button:hover {
+      background-color: #cc2929;
+    }
+    #registroBtn {
+      background-color: transparent;
+      border: 1px solid #ff3333;
       color: #ff3333;
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 14px;
-      padding: 0;
+      width: auto;
+      padding: 8px 20px;
       margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    #registroBtn:hover {
+      background-color: #ff3333;
+      color: white;
+    }
+    #mensaje {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: bold;
+      text-align: center;
+      width: 250px;
     }
   </style>
 </head>
@@ -45,9 +63,13 @@
   <input type="email" id="email" placeholder="Email" />
   <input type="password" id="password" placeholder="Contraseña" />
   <button onclick="login()">Iniciar Sesión</button>
-  <p id="mensaje"></p>
 
-  <button class="link-button" onclick="irARegistro()">¿No tienes cuenta? Registrarse</button>
+  <div id="mensaje"></div>
+
+  <!-- Botón para ir a registro -->
+  <button id="registroBtn" onclick="window.location.href='register.html'">
+    ¿No tienes cuenta? Registrarse
+  </button>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -81,10 +103,6 @@
         .catch(error => {
           document.getElementById("mensaje").textContent = "Error: " + error.message;
         });
-    }
-
-    function irARegistro() {
-      window.location.href = "register.html";
     }
   </script>
 </body>
