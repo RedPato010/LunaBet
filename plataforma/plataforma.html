@@ -19,6 +19,7 @@
       justify-content: space-between;
       padding: 15px 30px;
       border-bottom: 1px solid #333;
+      flex-wrap: wrap;
     }
 
     .logo {
@@ -27,21 +28,36 @@
       color: #ff3333;
     }
 
+    .saldo {
+      font-size: 16px;
+      background: #222;
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
     nav {
       display: flex;
       align-items: center;
       gap: 20px;
+      position: relative;
+      margin-top: 10px;
     }
 
     .menu-item {
       position: relative;
       cursor: pointer;
+      user-select: none;
+    }
+
+    .menu-item.activo {
+      color: #ff3333;
     }
 
     .submenu {
       display: none;
       position: absolute;
-      top: 30px;
+      top: 35px;
       left: 0;
       background: #1e1e1e;
       border: 1px solid #333;
@@ -49,6 +65,7 @@
       padding: 10px;
       z-index: 100;
       flex-direction: column;
+      min-width: 140px;
     }
 
     .submenu a {
@@ -62,31 +79,8 @@
       color: #ff3333;
     }
 
-    .menu-item:hover .submenu {
-      display: flex;
-    }
-
-    .saldo {
-      font-size: 16px;
-      background: #222;
-      padding: 8px 16px;
-      border-radius: 8px;
-    }
-
-    .logout-btn {
-      background-color: transparent;
-      border: 1px solid #ff3333;
-      color: #ff3333;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background-color: #ff3333;
-      color: white;
+    .submenu.mostrar {
+      display: flex !important;
     }
 
     main {
@@ -103,6 +97,18 @@
       color: #aaa;
       font-size: 16px;
     }
+
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -111,9 +117,9 @@
     <div class="logo">LunaBet</div>
 
     <nav>
-      <div class="menu-item">
+      <div class="menu-item" id="menuMiniJuegos">
         🎮 Mini Juegos
-        <div class="submenu">
+        <div class="submenu" id="submenu">
           <a href="ruleta.html">Ruleta</a>
           <a href="blackjack.html">Blackjack</a>
           <a href="dados.html">Dados</a>
@@ -121,7 +127,6 @@
         </div>
       </div>
       <div class="saldo">Saldo: $<span id="saldo">0</span></div>
-      <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
     </nav>
   </header>
 
@@ -151,7 +156,6 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // Verifica si el usuario está autenticado
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "../login.html";
@@ -165,11 +169,22 @@
       }
     });
 
-    function cerrarSesion() {
-      auth.signOut().then(() => {
-        window.location.href = "../login.html";
+    // Mostrar submenu al hacer click
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuItem = document.getElementById('menuMiniJuegos');
+      const submenu = document.getElementById('submenu');
+
+      menuItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        submenu.classList.toggle('mostrar');
+        menuItem.classList.toggle('activo');
       });
-    }
+
+      document.addEventListener('click', () => {
+        submenu.classList.remove('mostrar');
+        menuItem.classList.remove('activo');
+      });
+    });
   </script>
 
 </body>
