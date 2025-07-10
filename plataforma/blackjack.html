@@ -134,7 +134,7 @@
         contenedor.innerHTML = "";
         mano.forEach(carta => {
           const img = document.createElement("img");
-          img.src = `../assets/cartas/${carta.nombre}_of_${carta.palo}.png`;
+          img.src = `assets/cartas/${carta.nombre}_of_${carta.palo}.png`;
           img.className = "carta";
           contenedor.appendChild(img);
         });
