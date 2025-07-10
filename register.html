@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Registro - Lunabet</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <style>
     body {
       background: #111;
@@ -16,13 +14,15 @@
       justify-content: center;
       height: 100vh;
       font-family: Arial, sans-serif;
+      margin: 0;
     }
     input, button {
       margin: 10px;
-      padding: 12px;
+      padding: 10px;
       width: 250px;
-      border: none;
+      font-size: 16px;
       border-radius: 5px;
+      border: none;
     }
     input {
       background: #222;
@@ -32,19 +32,32 @@
       background-color: #ff3333;
       color: white;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    h2 {
-      margin-bottom: 20px;
+    button:hover {
+      background-color: #cc2929;
     }
-    .link-button {
-      background: none;
-      border: none;
+    #loginBtn {
+      background-color: transparent;
+      border: 1px solid #ff3333;
       color: #ff3333;
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 14px;
-      padding: 0;
+      width: auto;
+      padding: 8px 20px;
       margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    #loginBtn:hover {
+      background-color: #ff3333;
+      color: white;
+    }
+    #mensaje {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: bold;
+      text-align: center;
+      width: 250px;
     }
   </style>
 </head>
@@ -54,9 +67,15 @@
   <input type="email" id="email" placeholder="Correo electrónico" />
   <input type="password" id="password" placeholder="Contraseña" />
   <button onclick="registrar()">Registrarse</button>
-  <p id="mensaje"></p>
 
-  <button class="link-button" onclick="irALogin()">¿Ya tienes cuenta? Iniciar sesión</button>
+  <div id="mensaje"></div>
+
+  <button id="loginBtn" onclick="window.location.href='login.html'">
+    ¿Ya tienes cuenta? Iniciar sesión
+  </button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -71,25 +90,22 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
     function registrar() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      firebase.auth().createUserWithEmailAndPassword(email, password)
+      auth.createUserWithEmailAndPassword(email, password)
         .then(() => {
           document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
           setTimeout(() => {
             window.location.href = "login.html";
           }, 1500);
         })
-        .catch((error) => {
+        .catch(error => {
           document.getElementById("mensaje").textContent = "Error: " + error.message;
         });
-    }
-
-    function irALogin() {
-      window.location.href = "login.html";
     }
   </script>
 
