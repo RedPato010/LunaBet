@@ -3,96 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Menú Principal - Casino LunaBet</title>
+  <title>Plataforma LunaBet</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background-color: #111;
-      color: white;
       font-family: Arial, sans-serif;
+      background: #222;
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
+      margin: 0;
+      padding: 20px;
     }
 
     h1 {
-      margin-top: 20px;
-      font-size: 32px;
-      text-align: center;
+      margin-bottom: 30px;
     }
 
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+    /* Botón Mini Juegos */
+    #mini-juegos-btn {
       margin-top: 30px;
-    }
-
-    .menu button {
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #ff3333;
-      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #ff3333;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
+      color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
-      width: 250px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      transition: background 0.3s ease;
+      position: relative;
+      z-index: 10;
     }
 
-    .menu button:hover {
-      background-color: #cc0000;
+    #mini-juegos-btn:hover {
+      background: #e62e2e;
     }
 
-    .logout {
-      margin-top: 40px;
-      font-size: 14px;
-      color: #ccc;
-      cursor: pointer;
-      text-decoration: underline;
+    #flecha {
+      display: inline-block;
+      transition: transform 0.3s ease;
     }
+
+    #mini-juegos-btn.activo #flecha {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown menu */
+    #dropdown {
+      margin-top: 8px;
+      background: #333;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      overflow: hidden;
+      max-height: 0;
+      width: 180px;
+      transition: max-height 0.3s ease;
+      font-size: 16px;
+      user-select: none;
+    }
+
+    #dropdown.activo {
+      max-height: 400px; /* suficiente para mostrar todo */
+    }
+
+    #dropdown a {
+      display: block;
+      padding: 12px 16px;
+      color: white;
+      text-decoration: none;
+      border-bottom: 1px solid #444;
+      transition: background 0.2s ease;
+    }
+
+    #dropdown a:last-child {
+      border-bottom: none;
+    }
+
+    #dropdown a:hover {
+      background: #ff3333;
+    }
+
   </style>
 </head>
 <body>
 
-  <h1>🎰 Bienvenido a LunaBet 🎰</h1>
+  <h1>Bienvenido a LunaBet</h1>
 
-  <div class="menu">
-    <button onclick="location.href='ruleta.html'">🎡 Ruleta</button>
-    <button onclick="location.href='blackjack.html'">🃏 Blackjack</button>
-    <button onclick="location.href='dados.html'">🎲 Dados</button>
-    <button onclick="location.href='minas.html'">💣 Minas</button>
+  <button id="mini-juegos-btn">Mini Juegos <span id="flecha">⬇️</span></button>
+  <div id="dropdown">
+    <a href="ruleta.html">🎯 Ruleta</a>
+    <a href="blackjack.html">♠️ Blackjack</a>
+    <a href="dados.html">🎲 Dados</a>
+    <a href="minas.html">💣 Minas</a>
   </div>
 
-  <div class="logout" onclick="cerrarSesion()">Cerrar sesión</div>
-
-  <!-- Firebase para controlar si hay sesión -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
-      authDomain: "lunabet-73609.firebaseapp.com",
-      projectId: "lunabet-73609",
-    };
+    const btn = document.getElementById("mini-juegos-btn");
+    const dropdown = document.getElementById("dropdown");
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "../login.html";
-      }
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("activo");
+      btn.classList.toggle("activo");
     });
 
-    function cerrarSesion() {
-      auth.signOut().then(() => {
-        window.location.href = "../login.html";
-      });
-    }
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove("activo");
+        btn.classList.remove("activo");
+      }
+    });
   </script>
 
 </body>
