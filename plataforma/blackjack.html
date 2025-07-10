@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Blackjack Mejorado - Lunabet</title>
+<title>Blackjack Mejorado con Imágenes - Lunabet</title>
 <style>
   body {
     background: #111;
@@ -13,7 +13,12 @@
     min-height: 100vh;
   }
   h1 { margin-bottom: 10px; }
-  #saldo { margin-bottom: 20px; font-size: 1.3em; }
+  #saldo {
+    margin-bottom: 20px; 
+    font-size: 1.3em;
+    font-weight: bold;
+    text-align: center;
+  }
   #apuestaContainer {
     margin-bottom: 20px;
     display: flex; align-items: center; gap: 10px;
@@ -35,16 +40,9 @@
   .carta {
     width: 80px; 
     height: 120px;
-    background: #eee;
-    color: black;
     border-radius: 8px;
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-    font-weight: bold;
-    font-size: 2em;
-    user-select: none;
     box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+    user-select: none;
   }
   #mensajes {
     min-height: 28px;
@@ -132,9 +130,7 @@
   let apuesta = parseInt(document.getElementById('apuesta').value);
   let manoJugador = [];
   let manoDealer = [];
-  let manoDividida = null; 
-  let turnoMano = 'principal';
-  let puedeDividir = false;
+  let manoDividida = null;
   let estadoJuego = 'esperando';
 
   const saldoValor = document.getElementById('saldoValor');
@@ -156,7 +152,7 @@
   }
 
   function crearBaraja() {
-    const palos = ['♠', '♥', '♦', '♣'];
+    const palos = ['S', 'H', 'D', 'C'];
     const valores = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     let baraja = [];
     for (let palo of palos) {
@@ -164,6 +160,7 @@
         baraja.push(val + palo);
       }
     }
+    // Mezclar
     return baraja.sort(() => Math.random() - 0.5);
   }
 
@@ -194,10 +191,12 @@
   function mostrarCartas(mano, contenedor) {
     contenedor.innerHTML = '';
     mano.forEach(carta => {
-      const div = document.createElement('div');
-      div.className = 'carta';
-      div.textContent = carta;
-      contenedor.appendChild(div);
+      const img = document.createElement('img');
+      img.className = 'carta';
+      img.alt = carta;
+      // URL imágenes cartas públicas
+      img.src = `https://deckofcardsapi.com/static/img/${carta}.png`;
+      contenedor.appendChild(img);
     });
   }
 
@@ -210,7 +209,6 @@
     manoJugador = [];
     manoDealer = [];
     manoDividida = null;
-    turnoMano = 'principal';
     estadoJuego = 'jugando';
     actualizarSaldo(saldo - apuesta);
     mensajes.textContent = 'Mano iniciada. Buena suerte!';
@@ -221,7 +219,6 @@
     manoJugador.push(baraja.pop());
     manoDealer.push(baraja.pop());
 
-    // Mostrar cartas completas del dealer
     mostrarCartas(manoJugador, cartasJugador);
     mostrarCartas(manoDealer, cartasDealer);
 
@@ -287,8 +284,7 @@
     manoDividida.push(baraja.pop());
 
     mostrarCartas(manoJugador, cartasJugador);
-    // No mostramos mano dividida por simplicidad
-
+    // Por simplicidad no implementamos mano dividida completa
     mensajes.textContent = 'Mano dividida (solo jugamos mano principal por ahora)';
     btnDividir.disabled = true;
     btnDoblar.disabled = true;
@@ -359,4 +355,3 @@
 
 </body>
 </html>
-
