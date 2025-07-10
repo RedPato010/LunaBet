@@ -10,16 +10,43 @@
 
   <form class="form-box" id="loginForm">
     <h2>Iniciar sesión</h2>
-    <input type="email" placeholder="Correo electrónico" required />
-    <input type="password" placeholder="Contraseña" required />
+    <input type="email" id="email" placeholder="Correo electrónico" required />
+    <input type="password" id="password" placeholder="Contraseña" required />
     <button type="submit">Entrar</button>
-    <div class="back-link"><a href="index.html">Volver al inicio</a></div>
+    <div class="back-link"><a href="register.html">¿No tienes cuenta? Regístrate</a></div>
   </form>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', e => {
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById('loginForm');
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      alert('Inicio de sesión simulado. Integraremos la base de datos más adelante.');
+
+      const email = form.email.value;
+      const password = form.password.value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('Inicio de sesión exitoso!');
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        alert('Error al iniciar sesión: ' + error.message);
+      }
     });
   </script>
 
