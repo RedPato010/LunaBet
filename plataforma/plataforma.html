@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plataforma LunaBet</title>
+  <title>Plataforma Ruleta</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,113 +12,203 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
+      justify-content: center;
+      height: 100vh;
       margin: 0;
-      padding: 20px;
     }
-
+    #saldo {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
     h1 {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
-
-    /* Botón Mini Juegos */
-    #mini-juegos-btn {
+    #ruleta {
+      width: 300px;
+      height: 300px;
+      border: 8px solid #555;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px #ff3333;
+    }
+    #ruleta canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    #flecha {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #ff3333;
+      z-index: 10;
+    }
+    button {
       margin-top: 30px;
-      padding: 12px 20px;
+      padding: 12px 30px;
       font-size: 16px;
       background: #ff3333;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       color: white;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      user-select: none;
       transition: background 0.3s ease;
-      position: relative;
-      z-index: 10;
     }
-
-    #mini-juegos-btn:hover {
-      background: #e62e2e;
+    button:disabled {
+      background: #aa0000;
+      cursor: not-allowed;
     }
-
-    #flecha {
-      display: inline-block;
-      transition: transform 0.3s ease;
+    #resultado {
+      margin-top: 25px;
+      font-size: 22px;
+      font-weight: bold;
+      height: 28px;
+      min-width: 200px;
+      text-align: center;
     }
-
-    #mini-juegos-btn.activo #flecha {
-      transform: rotate(180deg);
-    }
-
-    /* Dropdown menu */
-    #dropdown {
-      margin-top: 8px;
-      background: #333;
-      border-radius: 6px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-      overflow: hidden;
-      max-height: 0;
-      width: 180px;
-      transition: max-height 0.3s ease;
-      font-size: 16px;
-      user-select: none;
-    }
-
-    #dropdown.activo {
-      max-height: 400px; /* suficiente para mostrar todo */
-    }
-
-    #dropdown a {
-      display: block;
-      padding: 12px 16px;
-      color: white;
-      text-decoration: none;
-      border-bottom: 1px solid #444;
-      transition: background 0.2s ease;
-    }
-
-    #dropdown a:last-child {
-      border-bottom: none;
-    }
-
-    #dropdown a:hover {
-      background: #ff3333;
-    }
-
   </style>
 </head>
 <body>
 
-  <h1>Bienvenido a LunaBet</h1>
+  <div id="saldo">Saldo: --</div>
 
-  <button id="mini-juegos-btn">Mini Juegos <span id="flecha">⬇️</span></button>
-  <div id="dropdown">
-    <a href="ruleta.html">🎯 Ruleta</a>
-    <a href="blackjack.html">♠️ Blackjack</a>
-    <a href="dados.html">🎲 Dados</a>
-    <a href="minas.html">💣 Minas</a>
+  <h1>Ruleta Simple</h1>
+  <div id="ruleta">
+    <div id="flecha"></div>
+    <canvas id="canvas" width="300" height="300"></canvas>
   </div>
+  <button id="girarBtn">Girar Ruleta</button>
+  <div id="resultado"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
-    const btn = document.getElementById("mini-juegos-btn");
-    const dropdown = document.getElementById("dropdown");
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
+    };
 
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      dropdown.classList.toggle("activo");
-      btn.classList.toggle("activo");
-    });
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    document.addEventListener("click", (e) => {
-      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-        dropdown.classList.remove("activo");
-        btn.classList.remove("activo");
+    const saldoDiv = document.getElementById('saldo');
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        // Leer saldo
+        db.collection('users').doc(user.uid).get()
+          .then(doc => {
+            if (doc.exists) {
+              saldoDiv.textContent = "Saldo: " + doc.data().saldo;
+            } else {
+              saldoDiv.textContent = "Saldo no encontrado";
+            }
+          })
+          .catch(error => {
+            saldoDiv.textContent = "Error al obtener saldo";
+            console.error(error);
+          });
       }
     });
+
+    // Código de la ruleta:
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const girarBtn = document.getElementById('girarBtn');
+    const resultado = document.getElementById('resultado');
+
+    const opciones = [
+      {color: '#ff3333', label: 'Rojo'},
+      {color: '#33ff33', label: 'Verde'},
+      {color: '#3333ff', label: 'Azul'},
+      {color: '#ffff33', label: 'Amarillo'},
+      {color: '#ff33ff', label: 'Fucsia'},
+      {color: '#33ffff', label: 'Cian'},
+    ];
+
+    const numOpciones = opciones.length;
+    const anguloPorSector = 2 * Math.PI / numOpciones;
+
+    let anguloActual = 0;
+    let velocidad = 0;
+    let animando = false;
+
+    function dibujarRuleta() {
+      const radio = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radio, radio);
+      ctx.rotate(anguloActual);
+
+      for (let i = 0; i < numOpciones; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = opciones[i].color;
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radio, i * anguloPorSector, (i + 1) * anguloPorSector);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.rotate(i * anguloPorSector + anguloPorSector / 2);
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(opciones[i].label, radio - 10, 10);
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    function animar() {
+      if (!animando) return;
+      velocidad *= 0.97;
+      if (velocidad < 0.002) {
+        animando = false;
+        velocidad = 0;
+        mostrarResultado();
+      } else {
+        anguloActual += velocidad;
+        anguloActual %= 2 * Math.PI;
+        dibujarRuleta();
+        requestAnimationFrame(animar);
+      }
+    }
+
+    function mostrarResultado() {
+      const anguloFlecha = (3 * Math.PI / 2 - anguloActual + 2 * Math.PI) % (2 * Math.PI);
+      let indexResultado = Math.floor(anguloFlecha / anguloPorSector);
+      let sector = opciones[indexResultado];
+      resultado.textContent = `Resultado: ${sector.label}`;
+      girarBtn.disabled = false;
+    }
+
+    girarBtn.addEventListener('click', () => {
+      if (animando) return;
+      resultado.textContent = '';
+      velocidad = 0.3 + Math.random() * 0.3;
+      animando = true;
+      girarBtn.disabled = true;
+      animar();
+    });
+
+    dibujarRuleta();
   </script>
 
 </body>
