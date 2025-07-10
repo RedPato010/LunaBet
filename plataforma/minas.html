@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Minas - LunaBet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minas - Lunabet</title>
   <style>
     body {
       background: #121212;
@@ -12,83 +12,106 @@
       text-align: center;
       padding: 20px;
     }
-
     h1 {
+      color: #ff3333;
+    }
+    #saldo {
+      font-size: 18px;
       margin-bottom: 10px;
     }
-
-    .saldo-container {
-      margin-bottom: 20px;
-    }
-
-    .tablero {
-      display: grid;
-      grid-template-columns: repeat(5, 60px);
-      gap: 10px;
-      justify-content: center;
-      margin: 20px auto;
-    }
-
-    .casilla {
-      width: 60px;
-      height: 60px;
-      background-color: #1e1e1e;
-      border: 2px solid #333;
-      border-radius: 6px;
-      font-size: 24px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .casilla.revelada {
-      background-color: #444;
-      cursor: default;
-    }
-
-    .controles {
-      margin-top: 15px;
-    }
-
-    input {
-      padding: 10px;
+    #apuesta {
+      padding: 8px;
       font-size: 16px;
       width: 100px;
       margin-bottom: 10px;
     }
-
     button {
       padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
       background-color: #ff3333;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
-      margin: 5px;
+      perspective: 600px;
     }
-
-    button:hover {
-      background-color: #cc0000;
+    #tablero {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .casilla {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+      user-select: none;
+      position: relative;
+      transform-style: preserve-3d;
+      transform-origin: center;
+      transition: transform 0.5s;
+    }
+    .casilla.disabled {
+      cursor: default;
+    }
+    .casilla.flipped {
+      transform: rotateY(180deg);
+      cursor: default;
+    }
+    .front, .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 26px;
+    }
+    .front {
+      background: #222;
+      color: transparent;
+      z-index: 2;
+    }
+    .back {
+      background: #006600;
+      color: #0f0;
+      transform: rotateY(180deg);
+      z-index: 1;
+    }
+    .back.bomb {
+      background: #b00000;
+      color: #f33;
+    }
+    #ganancias {
+      font-size: 18px;
+      margin-top: 10px;
+      color: #0f0;
     }
   </style>
 </head>
 <body>
-
   <h1>💣 Juego de Minas</h1>
+  <div id="saldo">Saldo: $0</div>
+  <input type="number" id="apuesta" placeholder="Apuesta" min="1" value="100" />
+  <br />
+  <button id="iniciarBtn" onclick="iniciarJuego()">Iniciar Juego</button>
+  <button onclick="retirarGanancia()">💵 Retirar Ganancias</button>
 
-  <div class="saldo-container">
-    Saldo: $<span id="saldo">0</span><br>
-    Apuesta: <input type="number" id="apuesta" min="10" value="100">
-  </div>
-
-  <div class="tablero" id="tablero"></div>
-
-  <div class="controles">
-    <button onclick="iniciarJuego()">Iniciar Juego</button>
-    <button onclick="cobrar()">Cobrar</button>
-  </div>
-
-  <p id="mensaje"></p>
+  <div id="ganancias">Ganancia acumulada: $0</div>
+  <div id="tablero"></div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -113,86 +136,161 @@
 
     let uid = null;
     let saldo = 0;
-    let apuesta = 0;
     let minas = [];
+    let enJuego = false;
+    let apuestaActual = 0;
     let ganancia = 0;
-    let juegoActivo = false;
-    const size = 25;
-    const minasTotal = 5;
+    let animando = false;
+
+    const tablero = document.getElementById("tablero");
+    const saldoEl = document.getElementById("saldo");
+    const gananciaEl = document.getElementById("ganancias");
+    const iniciarBtn = document.getElementById("iniciarBtn");
+
+    function crearTablero() {
+      tablero.innerHTML = "";
+      for (let i = 0; i < 25; i++) {
+        const btn = document.createElement("button");
+        btn.className = "casilla";
+        btn.innerHTML = `
+          <div class="front"></div>
+          <div class="back"></div>
+        `;
+        btn.addEventListener("click", () => revelar(i, btn));
+        tablero.appendChild(btn);
+      }
+    }
+
+    function iniciarJuego() {
+      if(animando) return;
+      const apuesta = parseInt(document.getElementById("apuesta").value);
+      if (isNaN(apuesta) || apuesta < 1) {
+        alert("Apuesta inválida");
+        return;
+      }
+      if (apuesta > saldo) {
+        alert("Saldo insuficiente");
+        return;
+      }
+
+      apuestaActual = apuesta;
+      ganancia = 0;
+      actualizarGanancia();
+      enJuego = true;
+      minas = [];
+
+      while (minas.length < 5) {
+        const n = Math.floor(Math.random() * 25);
+        if (!minas.includes(n)) minas.push(n);
+      }
+
+      crearTablero();
+      iniciarBtn.style.display = "none";
+    }
+
+    function revelar(index, btn) {
+      if (!enJuego || animando || btn.classList.contains("flipped")) return;
+
+      animando = true;
+      btn.style.pointerEvents = "none";
+
+      const front = btn.querySelector(".front");
+      const back = btn.querySelector(".back");
+
+      // Marcar contenido back según sea mina o no
+      if (minas.includes(index)) {
+        back.textContent = "💣";
+        back.classList.add("bomb");
+      } else {
+        back.textContent = "💰";
+        back.classList.remove("bomb");
+      }
+
+      // Animar volteo
+      btn.classList.add("flipped");
+
+      setTimeout(() => {
+        animando = false;
+        if (minas.includes(index)) {
+          perder();
+        } else {
+          ganancia += apuestaActual * 1.5;
+          actualizarGanancia();
+          if (ganancia >= apuestaActual * 25) { // si gana el max posible (todas menos minas)
+            alert("¡Felicitaciones! Has encontrado todas las casillas seguras.");
+            terminarJuego();
+          }
+        }
+      }, 600);
+    }
+
+    function perder() {
+      enJuego = false;
+      saldo -= apuestaActual;
+      actualizarSaldo();
+      alert("💥 ¡Pisaste una mina! Perdiste.");
+      mostrarTodas();
+      iniciarBtn.style.display = "inline-block";
+    }
+
+    function retirarGanancia() {
+      if (!enJuego || ganancia <= 0 || animando) return;
+
+      saldo += ganancia;
+      actualizarSaldo();
+      alert("💸 Retiraste $" + ganancia.toFixed(2) + " en ganancias.");
+      enJuego = false;
+      ganancia = 0;
+      actualizarGanancia();
+      mostrarTodas();
+      iniciarBtn.style.display = "inline-block";
+    }
+
+    function mostrarTodas() {
+      document.querySelectorAll(".casilla").forEach((btn, i) => {
+        btn.classList.add("flipped");
+        btn.style.pointerEvents = "none";
+        const back = btn.querySelector(".back");
+        if (minas.includes(i)) {
+          back.textContent = "💣";
+          back.classList.add("bomb");
+        } else {
+          back.textContent = "💰";
+          back.classList.remove("bomb");
+        }
+      });
+    }
+
+    function actualizarSaldo() {
+      saldoEl.textContent = "Saldo: $" + saldo.toFixed(2);
+      db.ref("usuarios/" + uid + "/saldo").set(saldo);
+    }
+
+    function actualizarGanancia() {
+      gananciaEl.textContent = "Ganancia acumulada: $" + ganancia.toFixed(2);
+    }
+
+    function terminarJuego() {
+      enJuego = false;
+      ganancia = 0;
+      actualizarGanancia();
+      iniciarBtn.style.display = "inline-block";
+    }
 
     auth.onAuthStateChanged(user => {
-      if (!user) location.href = "../login.html";
+      if (!user) return location.href = "../login.html";
       uid = user.uid;
       const saldoRef = db.ref("usuarios/" + uid + "/saldo");
       saldoRef.once("value").then(snapshot => {
         saldo = snapshot.val() ?? 1000;
-        document.getElementById("saldo").textContent = saldo;
-        if (snapshot.val() === null) {
-          db.ref("usuarios/" + uid).set({ saldo: 1000 });
+        if (snapshot.val() === null || saldo === 0) {
+          saldo = 1000;
+          db.ref("usuarios/" + uid).set({ saldo });
         }
+        actualizarSaldo();
+        crearTablero();
       });
     });
-
-    function iniciarJuego() {
-      apuesta = parseInt(document.getElementById("apuesta").value);
-      if (isNaN(apuesta) || apuesta <= 0 || apuesta > saldo) {
-        document.getElementById("mensaje").textContent = "Apuesta inválida.";
-        return;
-      }
-
-      juegoActivo = true;
-      ganancia = apuesta;
-      minas = [];
-      document.getElementById("mensaje").textContent = "";
-      document.getElementById("saldo").textContent = saldo;
-      document.getElementById("tablero").innerHTML = "";
-
-      // Generar minas
-      while (minas.length < minasTotal) {
-        const index = Math.floor(Math.random() * size);
-        if (!minas.includes(index)) minas.push(index);
-      }
-
-      // Renderizar tablero
-      for (let i = 0; i < size; i++) {
-        const casilla = document.createElement("div");
-        casilla.classList.add("casilla");
-        casilla.addEventListener("click", () => seleccionarCasilla(i, casilla));
-        document.getElementById("tablero").appendChild(casilla);
-      }
-
-      // Descontar apuesta inicial
-      saldo -= apuesta;
-      db.ref("usuarios/" + uid + "/saldo").set(saldo);
-      document.getElementById("saldo").textContent = saldo;
-    }
-
-    function seleccionarCasilla(i, casilla) {
-      if (!juegoActivo || casilla.classList.contains("revelada")) return;
-
-      casilla.classList.add("revelada");
-
-      if (minas.includes(i)) {
-        casilla.textContent = "💣";
-        document.getElementById("mensaje").textContent = "¡Perdiste! Había una mina.";
-        juegoActivo = false;
-        ganancia = 0;
-      } else {
-        casilla.textContent = "💰";
-        ganancia += Math.floor(apuesta * 0.5);
-        document.getElementById("mensaje").textContent = `Ganancia actual: $${ganancia}`;
-      }
-    }
-
-    function cobrar() {
-      if (!juegoActivo || ganancia <= 0) return;
-      saldo += ganancia;
-      db.ref("usuarios/" + uid + "/saldo").set(saldo);
-      document.getElementById("saldo").textContent = saldo;
-      document.getElementById("mensaje").textContent = `¡Cobraste $${ganancia}!`;
-      juegoActivo = false;
-    }
   </script>
-
 </body>
 </html>
