@@ -10,7 +10,9 @@
 
   <div class="form-box">
     <h2>Bienvenido, Usuario</h2>
-    <p style="text-align:center; font-size:1.1rem;">Saldo actual: <strong>$1.200</strong></p>
+    <p style="text-align:center; font-size:1.1rem;">
+      Saldo actual: <strong id="saldoMostrar">$0.00</strong>
+    </p>
 
     <button onclick="location.href='juegos/index.html'">🎰 Ir a jugar</button>
     <button onclick="location.href='cargar.html'">💳 Cargar créditos</button>
@@ -19,6 +21,11 @@
 
     <div class="back-link"><a href="index.html">Volver al inicio</a></div>
   </div>
+
+  <script src="js/saldo.js"></script>
+  <script>
+    mostrarSaldo('saldoMostrar');
+  </script>
 
 </body>
 </html>
