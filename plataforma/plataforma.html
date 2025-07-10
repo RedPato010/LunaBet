@@ -27,13 +27,6 @@
       color: #ff3333;
     }
 
-    .saldo {
-      font-size: 16px;
-      background: #222;
-      padding: 8px 16px;
-      border-radius: 8px;
-    }
-
     nav {
       display: flex;
       align-items: center;
@@ -73,6 +66,29 @@
       display: flex;
     }
 
+    .saldo {
+      font-size: 16px;
+      background: #222;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+
+    .logout-btn {
+      background-color: transparent;
+      border: 1px solid #ff3333;
+      color: #ff3333;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background-color: #ff3333;
+      color: white;
+    }
+
     main {
       padding: 40px;
       text-align: center;
@@ -105,6 +121,7 @@
         </div>
       </div>
       <div class="saldo">Saldo: $<span id="saldo">0</span></div>
+      <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
     </nav>
   </header>
 
@@ -137,7 +154,7 @@
     // Verifica si el usuario está autenticado
     auth.onAuthStateChanged(user => {
       if (!user) {
-        window.location.href = "login.html";
+        window.location.href = "../login.html";
       } else {
         const uid = user.uid;
         const saldoRef = db.ref('usuarios/' + uid + '/saldo');
@@ -147,6 +164,12 @@
         });
       }
     });
+
+    function cerrarSesion() {
+      auth.signOut().then(() => {
+        window.location.href = "../login.html";
+      });
+    }
   </script>
 
 </body>
