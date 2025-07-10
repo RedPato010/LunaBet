@@ -33,6 +33,10 @@
       color: white;
       cursor: pointer;
     }
+    a {
+      color: #ff3333;
+      text-decoration: none;
+    }
     h2 {
       margin-bottom: 20px;
     }
@@ -45,6 +49,8 @@
   <input type="password" id="password" placeholder="Contraseña" />
   <button onclick="registrar()">Registrarse</button>
   <p id="mensaje"></p>
+
+  <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
 
   <script>
     const firebaseConfig = {
@@ -65,7 +71,7 @@
       const password = document.getElementById("password").value;
 
       firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+        .then(() => {
           document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
           setTimeout(() => {
             window.location.href = "login.html"; // Redirige al login
@@ -79,3 +85,4 @@
 
 </body>
 </html>
+
