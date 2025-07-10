@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Iniciar Sesión</title>
+  <title>Iniciar Sesión - Lunabet</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,9 +28,15 @@
       border: none;
       cursor: pointer;
     }
-    a {
+    .link-button {
+      background: none;
+      border: none;
       color: #ff3333;
-      text-decoration: none;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 14px;
+      padding: 0;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -41,7 +47,7 @@
   <button onclick="login()">Iniciar Sesión</button>
   <p id="mensaje"></p>
 
-  <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
+  <button class="link-button" onclick="irARegistro()">¿No tienes cuenta? Registrarse</button>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -75,6 +81,10 @@
         .catch(error => {
           document.getElementById("mensaje").textContent = "Error: " + error.message;
         });
+    }
+
+    function irARegistro() {
+      window.location.href = "register.html";
     }
   </script>
 </body>
