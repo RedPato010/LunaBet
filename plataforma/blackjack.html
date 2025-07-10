@@ -7,27 +7,37 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: url('assets/fondos/mesa_blackjack.jpg') no-repeat center center;
+      background: url('../assets/fondos/mesa_blackjack.jpg') no-repeat center center;
       background-size: cover;
       color: white;
       text-align: center;
       padding: 20px;
     }
+
+    .saldo-container {
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+
     .cartas {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin: 10px 0;
+      flex-wrap: wrap;
     }
-    .carta img {
+
+    .carta {
       width: 80px;
-      height: auto;
-      border-radius: 6px;
-      transition: transform 0.2s;
+      transition: transform 0.3s ease;
     }
-    .carta img:hover {
+
+    .carta:hover {
       transform: scale(1.1);
     }
+
     .controles button {
       margin: 5px;
       padding: 10px 20px;
@@ -38,12 +48,7 @@
       background: #ff3333;
       color: white;
     }
-    .saldo-container {
-      background: rgba(0,0,0,0.5);
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-    }
+
     input[type="number"] {
       padding: 8px;
       font-size: 16px;
@@ -72,6 +77,7 @@
   <div class="controles">
     <button onclick="pedirCarta()">Pedir Carta</button>
     <button onclick="plantarse()">Plantarse</button>
+    <button onclick="dividir()">Dividir</button>
     <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
@@ -98,54 +104,51 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    const palos = ["C", "D", "H", "S"]; // Clubs, Diamonds, Hearts, Spades
-    const valores = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
+    let jugador = [], dealer = [], uid = null, saldo = 0, apuesta = 0;
 
-    let jugador = [], dealer = [];
-    let uid = null, saldo = 0, apuesta = 0;
+    const palos = ["clubs", "diamonds", "hearts", "spades"];
+    const valores = [
+      {nombre: "ace", valor: 11},
+      {nombre: "2", valor: 2},
+      {nombre: "3", valor: 3},
+      {nombre: "4", valor: 4},
+      {nombre: "5", valor: 5},
+      {nombre: "6", valor: 6},
+      {nombre: "7", valor: 7},
+      {nombre: "8", valor: 8},
+      {nombre: "9", valor: 9},
+      {nombre: "10", valor: 10},
+      {nombre: "jack", valor: 10},
+      {nombre: "queen", valor: 10},
+      {nombre: "king", valor: 10},
+    ];
 
     function getCarta() {
       const valor = valores[Math.floor(Math.random() * valores.length)];
       const palo = palos[Math.floor(Math.random() * palos.length)];
-      return { valor, palo };
+      return { ...valor, palo };
     }
 
     function mostrarCartas() {
-      const jugadorDiv = document.getElementById("jugador");
-      const dealerDiv = document.getElementById("dealer");
-
-      jugadorDiv.innerHTML = "";
-      dealerDiv.innerHTML = "";
-
-      jugador.forEach(c => {
-        const img = document.createElement("img");
-        img.src = `assets/cartas/${c.valor}${c.palo}.png`;
-        jugadorDiv.appendChild(img);
-      });
-
-      dealer.forEach(c => {
-        const img = document.createElement("img");
-        img.src = `assets/cartas/${c.valor}${c.palo}.png`;
-        dealerDiv.appendChild(img);
-      });
+      const render = (mano, contenedor) => {
+        contenedor.innerHTML = "";
+        mano.forEach(carta => {
+          const img = document.createElement("img");
+          img.src = `../assets/cartas/${carta.nombre}_of_${carta.palo}.png`;
+          img.className = "carta";
+          contenedor.appendChild(img);
+        });
+      };
+      render(jugador, document.getElementById("jugador"));
+      render(dealer, document.getElementById("dealer"));
 
       document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
       document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
     }
 
     function calcularPuntos(mano) {
-      let total = 0;
-      let ases = 0;
-      mano.forEach(c => {
-        if (typeof c.valor === 'number') {
-          total += c.valor;
-        } else if (c.valor === 'A') {
-          total += 11;
-          ases++;
-        } else {
-          total += 10;
-        }
-      });
+      let total = mano.reduce((acc, c) => acc + c.valor, 0);
+      let ases = mano.filter(c => c.nombre === "ace").length;
       while (total > 21 && ases > 0) {
         total -= 10;
         ases--;
@@ -165,22 +168,24 @@
         dealer.push(getCarta());
       }
       mostrarCartas();
-      const puntosJugador = calcularPuntos(jugador);
-      const puntosDealer = calcularPuntos(dealer);
+      const pj = calcularPuntos(jugador);
+      const pd = calcularPuntos(dealer);
+      if (pd > 21 || pj > pd) terminarJuego("Ganaste", true);
+      else if (pj < pd) terminarJuego("Perdiste");
+      else terminarJuego("Empate", false, true);
+    }
 
-      if (puntosDealer > 21 || puntosJugador > puntosDealer) {
-        terminarJuego("Ganaste", true);
-      } else if (puntosJugador < puntosDealer) {
-        terminarJuego("Perdiste");
+    function dividir() {
+      if (jugador.length === 2 && jugador[0].valor === jugador[1].valor) {
+        alert("Funcionalidad de dividir aún en desarrollo.");
+        // Acá se puede implementar lógica de manos múltiples.
       } else {
-        terminarJuego("Empate", false, true);
+        alert("No se puede dividir esta mano.");
       }
     }
 
     function terminarJuego(mensaje, ganar = false, empate = false) {
       document.getElementById("resultado").textContent = mensaje;
-      if (!apuesta) return;
-
       let nuevoSaldo = saldo;
       if (ganar) {
         const puntos = calcularPuntos(jugador);
@@ -205,16 +210,16 @@
     auth.onAuthStateChanged(user => {
       if (!user) return location.href = "../login.html";
       uid = user.uid;
-      const saldoRef = db.ref('usuarios/' + uid + '/saldo');
-      saldoRef.once('value').then(snapshot => {
+      const saldoRef = db.ref("usuarios/" + uid + "/saldo");
+      saldoRef.once("value").then(snapshot => {
         saldo = snapshot.val() ?? 1000;
         document.getElementById("saldo").textContent = saldo;
         if (snapshot.val() === null) {
-          db.ref('usuarios/' + uid).set({ saldo: 1000 });
+          db.ref("usuarios/" + uid).set({ saldo: 1000 });
         }
-        reiniciar();
       });
     });
   </script>
+
 </body>
 </html>
