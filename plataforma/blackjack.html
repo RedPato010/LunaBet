@@ -7,45 +7,22 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: url('assets/fondos/mesa_blackjack.jpg') no-repeat center center fixed;
-      background-size: cover;
+      background: #006400;
       color: white;
       text-align: center;
       padding: 20px;
-      position: relative;
-      min-height: 100vh;
-      margin: 0;
     }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      pointer-events: none;
-      z-index: -1;
+    .cartas {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
     }
-
-    .cartas { 
-      display: flex; 
-      justify-content: center; 
-      gap: 10px; 
-      margin: 10px 0; 
-    }
-
-    .carta img {
+    .carta {
       width: 80px;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.8);
-      transition: transform 0.3s ease;
+      height: 120px;
     }
-
-    .carta img:hover {
-      transform: scale(1.1);
-      cursor: pointer;
-    }
-
     .controles button {
       margin: 5px;
       padding: 10px 20px;
@@ -55,21 +32,13 @@
       cursor: pointer;
       background: #ff3333;
       color: white;
-      transition: background-color 0.3s ease;
     }
-
-    .controles button:hover {
-      background-color: #cc2929;
-    }
-
     .saldo-container {
       background: rgba(0,0,0,0.5);
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 8px;
-      display: inline-block;
     }
-
     input[type="number"] {
       padding: 8px;
       font-size: 16px;
@@ -98,7 +67,7 @@
   <div class="controles">
     <button onclick="pedirCarta()">Pedir Carta</button>
     <button onclick="plantarse()">Plantarse</button>
-    <button onclick="dividir()">Dividir</button>
+    <button onclick="doblar()">Doblar</button>
     <button onclick="reiniciar()">Nueva Partida</button>
   </div>
 
@@ -127,58 +96,31 @@
 
     let jugador = [], dealer = [];
     let uid = null, saldo = 0, apuesta = 0;
+    let puedeDoblar = true;
 
-    const palos = ["clubs", "hearts", "diamonds", "spades"];
-    const valores = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"];
+    const palos = ["spades", "hearts", "clubs", "diamonds"];
+    const valores = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"];
 
-    const valorCarta = {
-      ace: 11,
-      "2": 2,
-      "3": 3,
-      "4": 4,
-      "5": 5,
-      "6": 6,
-      "7": 7,
-      "8": 8,
-      "9": 9,
-      "10": 10,
-      jack: 10,
-      queen: 10,
-      king: 10
-    };
-
-    // Devuelve una carta aleatoria como objeto { valor: "ace", palo: "spades" }
     function getCarta() {
       const valor = valores[Math.floor(Math.random() * valores.length)];
       const palo = palos[Math.floor(Math.random() * palos.length)];
-      return { valor, palo };
+      const nombre = `${valor}_of_${palo}`;
+      let puntos = parseInt(valor);
+      if (["jack", "queen", "king"].includes(valor)) puntos = 10;
+      if (valor === "ace") puntos = 11;
+      return { valor: puntos, nombre };
     }
 
-    // Devuelve el valor numérico de una carta para sumar puntos
-    function valorNumerico(carta) {
-      return valorCarta[carta.valor];
-    }
-
-    // Muestra cartas en pantalla usando imágenes
     function mostrarCartas() {
-      const mostrarMano = (mano, contenedorId) => {
-        const contenedor = document.getElementById(contenedorId);
-        contenedor.innerHTML = mano.map(carta => {
-          return `<div class="carta"><img src="assets/cartas/${carta.valor}_of_${carta.palo}.png" alt="${carta.valor} de ${carta.palo}"></div>`;
-        }).join("");
-      };
-
-      mostrarMano(jugador, "jugador");
-      mostrarMano(dealer, "dealer");
-
+      document.getElementById("jugador").innerHTML = jugador.map(c => `<img class="carta" src="assets/cartas/${c.nombre}.png" />`).join("");
+      document.getElementById("dealer").innerHTML = dealer.map(c => `<img class="carta" src="assets/cartas/${c.nombre}.png" />`).join("");
       document.getElementById("puntosJugador").textContent = calcularPuntos(jugador);
       document.getElementById("puntosDealer").textContent = calcularPuntos(dealer);
     }
 
-    // Calcula puntos sumando valores y ajustando ases
     function calcularPuntos(mano) {
-      let total = mano.reduce((acc, c) => acc + valorNumerico(c), 0);
-      let ases = mano.filter(c => c.valor === "ace").length;
+      let total = mano.reduce((acc, c) => acc + c.valor, 0);
+      let ases = mano.filter(c => c.valor === 11).length;
       while (total > 21 && ases > 0) {
         total -= 10;
         ases--;
@@ -186,23 +128,23 @@
       return total;
     }
 
-    // Accion pedir carta para jugador
     function pedirCarta() {
-      if (jugador.length === 0) return;
       jugador.push(getCarta());
+      puedeDoblar = false;
       mostrarCartas();
       const puntos = calcularPuntos(jugador);
-      if (puntos > 21) terminarJuego("Perdiste");
+      if (puntos > 21) terminarJuego("Te pasaste. Perdiste.");
     }
 
-    // Plantarse: dealer juega y se determina resultado
     function plantarse() {
-      let puntosJugador = calcularPuntos(jugador);
       while (calcularPuntos(dealer) < 17) {
         dealer.push(getCarta());
       }
       mostrarCartas();
+
+      const puntosJugador = calcularPuntos(jugador);
       const puntosDealer = calcularPuntos(dealer);
+
       if (puntosDealer > 21 || puntosJugador > puntosDealer) {
         terminarJuego("Ganaste", true);
       } else if (puntosJugador < puntosDealer) {
@@ -212,21 +154,23 @@
       }
     }
 
-    // Dividir (simplificado: solo permite dividir si las dos primeras cartas tienen el mismo valor)
-    function dividir() {
-      if (jugador.length !== 2) {
-        alert("Para dividir, debes tener exactamente 2 cartas.");
-        return;
+    function doblar() {
+      if (!puedeDoblar) return alert("Solo puedes doblar al comienzo de la ronda.");
+      if (saldo < apuesta * 2) return alert("No tienes saldo suficiente para doblar.");
+
+      apuesta *= 2;
+      jugador.push(getCarta());
+      puedeDoblar = false;
+      mostrarCartas();
+
+      const puntos = calcularPuntos(jugador);
+      if (puntos > 21) {
+        terminarJuego("Te pasaste. Perdiste.");
+      } else {
+        plantarse();
       }
-      if (jugador[0].valor !== jugador[1].valor) {
-        alert("Solo puedes dividir si las dos cartas tienen el mismo valor.");
-        return;
-      }
-      alert("Función dividir implementada solo como demostración. Puedes expandirla.");
-      // Aquí se podría implementar la lógica real para dividir la mano, pero requiere manejo complejo.
     }
 
-    // Finaliza el juego y actualiza saldo en Firebase
     function terminarJuego(mensaje, ganar = false, empate = false) {
       document.getElementById("resultado").textContent = mensaje;
       if (!apuesta) return;
@@ -234,7 +178,7 @@
       let nuevoSaldo = saldo;
       if (ganar) {
         const puntos = calcularPuntos(jugador);
-        nuevoSaldo += puntos === 21 && jugador.length === 2 ? apuesta * 1.5 : apuesta;
+        nuevoSaldo += (puntos === 21 && jugador.length === 2) ? apuesta * 1.5 : apuesta;
       } else if (!empate) {
         nuevoSaldo -= apuesta;
       }
@@ -244,9 +188,9 @@
       document.getElementById("saldo").textContent = saldo;
     }
 
-    // Reinicia la partida
     function reiniciar() {
       apuesta = parseInt(document.getElementById("apuesta").value) || 0;
+      puedeDoblar = true;
       jugador = [getCarta(), getCarta()];
       dealer = [getCarta()];
       document.getElementById("resultado").textContent = "";
@@ -256,12 +200,12 @@
     auth.onAuthStateChanged(user => {
       if (!user) return location.href = "../login.html";
       uid = user.uid;
-      const saldoRef = db.ref('usuarios/' + uid + '/saldo');
-      saldoRef.once('value').then(snapshot => {
+      const saldoRef = db.ref("usuarios/" + uid + "/saldo");
+      saldoRef.once("value").then(snapshot => {
         saldo = snapshot.val() ?? 1000;
         document.getElementById("saldo").textContent = saldo;
         if (snapshot.val() === null) {
-          db.ref('usuarios/' + uid).set({ saldo: 1000 });
+          db.ref("usuarios/" + uid).set({ saldo: 1000 });
         }
       });
     });
