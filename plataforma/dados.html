@@ -84,8 +84,8 @@
   </div>
 
   <div class="dados-container">
-    <img id="dado1" src="dados/dice_1.png" alt="Dado 1" />
-    <img id="dado2" src="dados/dice_1.png" alt="Dado 2" />
+    <img id="dado1" src="assets/dados/dice_1.png" alt="Dado 1" />
+    <img id="dado2" src="assets/dados/dice_1.png" alt="Dado 2" />
   </div>
 
   <div id="resultado"></div>
@@ -137,8 +137,8 @@
       const dado1 = Math.floor(Math.random() * 6) + 1;
       const dado2 = Math.floor(Math.random() * 6) + 1;
 
-      document.getElementById("dado1").src = `dados/dice_${dado1}.png`;
-      document.getElementById("dado2").src = `dados/dice_${dado2}.png`;
+      document.getElementById("dado1").src = `assets/dados/dice_${dado1}.png`;
+      document.getElementById("dado2").src = `assets/dados/dice_${dado2}.png`;
 
       const suma = dado1 + dado2;
       let mensaje = "";
