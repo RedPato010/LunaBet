@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proveedores de Juegos - LunaBet</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff3333;
+      margin-bottom: 30px;
+    }
+
+    .grid-proveedores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .proveedor {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+      height: 100px;
+    }
+
+    .proveedor:hover {
+      transform: scale(1.05);
+      border-color: #ff3333;
+    }
+
+    .proveedor img {
+      max-height: 60px;
+      max-width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(1px 1px 2px black);
+    }
+
+    .volver {
+      display: block;
+      margin: 30px auto 0;
+      text-align: center;
+      color: #ff3333;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .volver:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Proveedores de Juegos</h1>
+
+  <div class="grid-proveedores">
+    <div class="proveedor" onclick="location.href='pragmatic.html'">
+      <img src="assets/proveedores/pragmatic.png" alt="Pragmatic Play" />
+    </div>
+    <div class="proveedor" onclick="location.href='evolution.html'">
+      <img src="assets/proveedores/evolution.png" alt="Evolution Gaming" />
+    </div>
+    <div class="proveedor" onclick="location.href='netent.html'">
+      <img src="assets/proveedores/netent.png" alt="NetEnt" />
+    </div>
+    <div class="proveedor" onclick="location.href='playngo.html'">
+      <img src="assets/proveedores/playngo.png" alt="Play'n GO" />
+    </div>
+    <div class="proveedor" onclick="location.href='redtiger.html'">
+      <img src="assets/proveedores/redtiger.png" alt="Red Tiger" />
+    </div>
+    <div class="proveedor" onclick="location.href='habanero.html'">
+      <img src="assets/proveedores/habanero.png" alt="Habanero" />
+    </div>
+    <div class="proveedor" onclick="location.href='quickspin.html'">
+      <img src="assets/proveedores/quickspin.png" alt="Quickspin" />
+    </div>
+    <div class="proveedor" onclick="location.href='nolimitcity.html'">
+      <img src="assets/proveedores/nolimitcity.png" alt="NoLimit City" />
+    </div>
+    <div class="proveedor" onclick="location.href='isoftbet.html'">
+      <img src="assets/proveedores/isoftbet.png" alt="iSoftBet" />
+    </div>
+    <div class="proveedor" onclick="location.href='betsoft.html'">
+      <img src="assets/proveedores/betsoft.png" alt="Betsoft" />
+    </div>
+    <div class="proveedor" onclick="location.href='hacksaw.html'">
+      <img src="assets/proveedores/hacksaw.png" alt="Hacksaw Gaming" />
+    </div>
+    <div class="proveedor" onclick="location.href='rubiplay.html'">
+      <img src="assets/proveedores/rubiplay.png" alt="Rubiplay" />
+    </div>
+  </div>
+
+  <a class="volver" href="plataforma.html">← Volver a la plataforma</a>
+
+</body>
+</html>
