@@ -103,7 +103,7 @@
       cursor: pointer;
       font-weight: bold;
     }
-    #loginMsg, #registerMsg {
+    #loginMsg, #registerMsg, #mensajeRetiro {
       min-height: 24px;
       text-align: center;
       margin-top: 10px;
@@ -118,6 +118,7 @@
   <main>
     <button id="btnLogin">Iniciar Sesión</button>
     <button id="btnRegister">Crear Cuenta</button>
+    <button id="btnRetiro">Retirar Saldo</button>
   </main>
 
   <!-- Modal Login -->
@@ -145,6 +146,19 @@
     </div>
   </div>
 
+  <!-- Modal Retiro -->
+  <div class="modal-bg" id="modalRetiro">
+    <div class="modal">
+      <span class="close-btn" id="closeRetiro">&times;</span>
+      <h2>Retirar saldo</h2>
+      <p>Saldo actual: <span id="saldoRetiro">Cargando...</span> ARS</p>
+      <input type="number" id="montoRetiro" placeholder="Monto a retirar (mínimo 500)" min="500" step="100" />
+      <input type="text" id="aliasRetiro" placeholder="Alias o CBU" />
+      <button onclick="solicitarRetiro()">Solicitar Retiro</button>
+      <div id="mensajeRetiro" style="color:#ff3333; margin-top:10px;"></div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -169,16 +183,24 @@
     // Abrir y cerrar modales
     const btnLogin = document.getElementById('btnLogin');
     const btnRegister = document.getElementById('btnRegister');
+    const btnRetiro = document.getElementById('btnRetiro');
     const modalLogin = document.getElementById('modalLogin');
     const modalRegister = document.getElementById('modalRegister');
+    const modalRetiro = document.getElementById('modalRetiro');
     const closeLogin = document.getElementById('closeLogin');
     const closeRegister = document.getElementById('closeRegister');
+    const closeRetiro = document.getElementById('closeRetiro');
 
     btnLogin.onclick = () => modalLogin.classList.add('show');
     btnRegister.onclick = () => modalRegister.classList.add('show');
+    btnRetiro.onclick = () => {
+      modalRetiro.classList.add('show');
+      cargarSaldoRetiro();
+    };
 
     closeLogin.onclick = () => modalLogin.classList.remove('show');
     closeRegister.onclick = () => modalRegister.classList.remove('show');
+    closeRetiro.onclick = () => modalRetiro.classList.remove('show');
 
     // Login firebase
     function login() {
@@ -233,6 +255,7 @@
         await database.ref('users/' + uid).set({
           username,
           email,
+          saldoARS: 0,
           createdAt: Date.now()
         });
 
@@ -247,6 +270,66 @@
         msg.style.color = '#ff3333';
         msg.textContent = error.message;
       }
+    }
+
+    // Funciones para retiro
+    async function cargarSaldoRetiro() {
+      if (!auth.currentUser) return;
+      const uid = auth.currentUser.uid;
+      const snapshot = await database.ref('users/' + uid).once('value');
+      const data = snapshot.val();
+      document.getElementById('saldoRetiro').textContent = data?.saldoARS ?? 0;
+    }
+
+    async function solicitarRetiro() {
+      const msg = document.getElementById('mensajeRetiro');
+      const monto = parseInt(document.getElementById('montoRetiro').value);
+      const alias = document.getElementById('aliasRetiro').value.trim();
+
+      if (isNaN(monto) || monto < 500) {
+        msg.style.color = '#ff3333';
+        msg.textContent = "El monto mínimo para retirar es $500.";
+        return;
+      }
+      if (!alias) {
+        msg.style.color = '#ff3333';
+        msg.textContent = "Debes ingresar un alias o CBU válido.";
+        return;
+      }
+
+      const uid = auth.currentUser.uid;
+      const userRef = database.ref('users/' + uid);
+      const snapshot = await userRef.once('value');
+      const userData = snapshot.val();
+      const saldoActual = userData?.saldoARS ?? 0;
+
+      if (monto > saldoActual) {
+        msg.style.color = '#ff3333';
+        msg.textContent = "No tienes saldo suficiente.";
+        return;
+      }
+
+      // Actualizar saldo usuario
+      await userRef.update({ saldoARS: saldoActual - monto });
+
+      // Guardar solicitud de retiro
+      await database.ref('retiros').push({
+        uid,
+        email: auth.currentUser.email,
+        monto,
+        alias,
+        estado: 'pendiente',
+        creado: Date.now()
+      });
+
+      msg.style.color = '#4CAF50';
+      msg.textContent = "Retiro solicitado correctamente. Será procesado pronto.";
+      document.getElementById('montoRetiro').value = '';
+      document.getElementById('aliasRetiro').value = '';
+      
+      setTimeout(() => {
+        modalRetiro.classList.remove('show');
+      }, 2000);
     }
   </script>
 
