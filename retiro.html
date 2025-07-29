@@ -48,9 +48,6 @@
   <label for="monto">Monto a retirar (ARS):</label>
   <input type="number" id="monto" min="500" step="100" />
 
-  <label for="alias">Alias o CBU:</label>
-  <input type="text" id="alias" placeholder="Alias o CBU" />
-
   <button onclick="solicitarRetiro()">Solicitar Retiro</button>
 
   <script type="module">
@@ -102,15 +99,9 @@
 
     async function solicitarRetiro() {
       const monto = parseInt(document.getElementById("monto").value);
-      const alias = document.getElementById("alias").value.trim();
 
       if (isNaN(monto) || monto < 500) {
         alert("El retiro mínimo es de $500");
-        return;
-      }
-
-      if (alias.length < 5) {
-        alert("Por favor ingresa un alias o CBU válido");
         return;
       }
 
@@ -135,7 +126,6 @@
         uid: currentUser.uid,
         email: currentUser.email,
         monto,
-        alias,
         estado: "pendiente",
         creado: serverTimestamp()
       };
@@ -144,7 +134,6 @@
 
       alert("Solicitud de retiro enviada. Será procesada manualmente.");
       document.getElementById("monto").value = "";
-      document.getElementById("alias").value = "";
       await mostrarSaldo();
     }
   </script>
