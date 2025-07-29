@@ -148,6 +148,83 @@
       font-size: 16px;
     }
 
+    /* Modal Fondo */
+    #modalFondo {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 5000;
+    }
+
+    /* Modal Contenedor */
+    #modalRecarga {
+      background: #222;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #ff3333aa;
+      max-width: 400px;
+      width: 90%;
+      color: white;
+      position: relative;
+    }
+
+    /* Botón cerrar */
+    #modalRecarga button.cerrar {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #ff3333;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #modalRecarga h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    #modalRecarga label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    #modalRecarga input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    #modalRecarga button.enviar {
+      width: 100%;
+      background-color: #ff3333;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #modalRecarga button.enviar:hover {
+      background-color: #cc2929;
+    }
+
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -194,18 +271,29 @@
     <div class="descripcion">Elige un juego desde el menú para comenzar a jugar.</div>
   </main>
 
+  <!-- Modal carga saldo -->
+  <div id="modalFondo">
+    <div id="modalRecarga">
+      <button class="cerrar" id="cerrarModal">&times;</button>
+      <h2>Cargar saldo en ARS</h2>
+      <p>Transferí al alias: <strong>lunabet.arg</strong></p>
+      <label for="montoRecarga">Monto a recargar (mínimo $100 ARS)</label>
+      <input type="number" id="montoRecarga" min="100" step="100" />
+      <button class="enviar" id="enviarRecargaBtn">Enviar Recarga</button>
+    </div>
+  </div>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
-      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.firebasestorage.app",
+      storageBucket: "lunabet-73609.appspot.com",
       messagingSenderId: "45582135337",
       appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
       measurementId: "G-0XC4PX3HK9"
@@ -213,30 +301,42 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.database();
+    const db = firebase.firestore();
 
+    // Variables DOM
     const saldoSpan = document.getElementById("saldo");
     const saldoContainer = document.getElementById("saldoContainer");
     const menuSaldo = document.getElementById("menuSaldo");
     const btnRecargar = document.getElementById("btnRecargar");
     const btnRetirar = document.getElementById("btnRetirar");
 
+    const modalFondo = document.getElementById("modalFondo");
+    const cerrarModalBtn = document.getElementById("cerrarModal");
+    const enviarRecargaBtn = document.getElementById("enviarRecargaBtn");
+    const montoRecargaInput = document.getElementById("montoRecarga");
+
+    let currentUser;
+
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "../login.html";
       } else {
-        const uid = user.uid;
-        const saldoRef = db.ref('usuarios/' + uid + '/saldo');
-        saldoRef.once('value').then(snapshot => {
-          const saldo = snapshot.val() ?? 0;
-          saldoSpan.textContent = saldo;
+        currentUser = user;
+        const saldoRef = db.collection('users').doc(user.uid);
+        saldoRef.get().then(docSnap => {
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            saldoSpan.textContent = data.saldoARS ?? 0;
+          } else {
+            saldoSpan.textContent = 0;
+          }
         });
       }
     });
 
     // Mostrar/ocultar menú saldo al hacer click
     saldoContainer.addEventListener('click', (e) => {
-      e.stopPropagation(); // para que no cierre inmediatamente el menú
+      e.stopPropagation();
       if (menuSaldo.style.display === 'flex') {
         menuSaldo.style.display = 'none';
       } else {
@@ -250,14 +350,49 @@
       menuSaldo.style.display = 'none';
     });
 
+    // Abrir modal recarga
     btnRecargar.addEventListener('click', () => {
-  window.location.href = '../cargar.html';
-});
+      menuSaldo.style.display = 'none';
+      montoRecargaInput.value = "";
+      modalFondo.style.display = 'flex';
+    });
 
-btnRetirar.addEventListener('click', () => {
-  window.location.href = '../retiro.html';
-});
+    // Cerrar modal
+    cerrarModalBtn.addEventListener('click', () => {
+      modalFondo.style.display = 'none';
+    });
 
+    // Enviar recarga a Firestore
+    enviarRecargaBtn.addEventListener('click', async () => {
+      const monto = parseInt(montoRecargaInput.value);
+
+      if (isNaN(monto) || monto < 100) {
+        alert("El monto mínimo es $100");
+        return;
+      }
+
+      try {
+        await db.collection('recargasPendientes').add({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          monto: monto,
+          estado: "pendiente",
+          creado: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Recarga enviada. Será verificada en breve.");
+        montoRecargaInput.value = "";
+        modalFondo.style.display = 'none';
+      } catch (error) {
+        alert("Error al enviar la recarga");
+        console.error(error);
+      }
+    });
+
+    // Botón retirar sigue igual: redirige a retiro.html
+    btnRetirar.addEventListener('click', () => {
+      window.location.href = '../retiro.html';
+    });
 
     function cerrarSesion() {
       auth.signOut().then(() => {
