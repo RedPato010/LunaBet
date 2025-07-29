@@ -194,6 +194,16 @@
       cursor: pointer;
       font-weight: bold;
     }
+    .copiar-btn {
+      margin-left: 8px;
+      padding: 3px 6px;
+      font-size: 13px;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -211,6 +221,7 @@
 
   <header>
     <div class="logo">LunaBet</div>
+
     <nav>
       <div class="menu-item" id="menuMiniJuegos">
         🎮 Mini Juegos
@@ -221,6 +232,7 @@
           <a href="minas.html">Minas</a>
         </div>
       </div>
+
       <div class="saldo" id="saldoContainer">
         Saldo: $<span id="saldo">0</span>
         <div id="menuSaldo">
@@ -228,6 +240,7 @@
           <button id="btnRetirar">Retirar saldo</button>
         </div>
       </div>
+
       <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </nav>
   </header>
@@ -242,9 +255,12 @@
     <div class="modal">
       <span class="cerrar-modal" id="cerrarCargar">&times;</span>
       <h2>Cargar saldo en ARS</h2>
-      <p><strong>Alias:</strong> lunabet.transferencia</p>
-      <p><strong>CBU:</strong> 0000003100050078130023</p>
-      <button id="btnCopiarCBU">📋 Copiar Alias/CBU</button>
+      <p><strong>Alias:</strong> lunabet.transferencia 
+        <button class="copiar-btn" onclick="copiarTexto('lunabet.transferencia')">📋</button>
+      </p>
+      <p><strong>CBU:</strong> 0000003100050078130023 
+        <button class="copiar-btn" onclick="copiarTexto('0000003100050078130023')">📋</button>
+      </p>
       <label for="montoCargar">Monto a cargar (ARS):</label>
       <input type="number" id="montoCargar" min="100" step="100" />
       <button id="btnConfirmarCargar">Confirmar carga</button>
@@ -274,10 +290,9 @@
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.firebasestorage.app",
+      storageBucket: "lunabet-73609.appspot.com",
       messagingSenderId: "45582135337",
-      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
-      measurementId: "G-0XC4PX3HK9"
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -294,7 +309,6 @@
     const cerrarCargar = document.getElementById("cerrarCargar");
     const btnConfirmarCargar = document.getElementById("btnConfirmarCargar");
     const inputMontoCargar = document.getElementById("montoCargar");
-    const btnCopiarCBU = document.getElementById("btnCopiarCBU");
 
     const modalRetirar = document.getElementById("modalRetirar");
     const cerrarRetirar = document.getElementById("cerrarRetirar");
@@ -315,14 +329,18 @@
 
     function cargarSaldoUsuario() {
       db.collection('users').doc(currentUser.uid).get().then(docSnap => {
-        const data = docSnap.data();
-        saldoSpan.textContent = data?.saldoARS ?? 0;
+        if (docSnap.exists) {
+          saldoSpan.textContent = docSnap.data().saldoARS ?? 0;
+        } else {
+          saldoSpan.textContent = 0;
+          db.collection('users').doc(currentUser.uid).set({ saldoARS: 0 });
+        }
       });
     }
 
-    saldoContainer.addEventListener('click', e => {
+    saldoContainer.addEventListener('click', (e) => {
       e.stopPropagation();
-      menuSaldo.style.display = menuSaldo.style.display === 'flex' ? 'none' : 'flex';
+      menuSaldo.style.display = (menuSaldo.style.display === 'flex') ? 'none' : 'flex';
       menuSaldo.style.flexDirection = 'column';
     });
 
@@ -331,13 +349,10 @@
     });
 
     btnRecargar.addEventListener('click', () => {
-      menuSaldo.style.display = 'none';
       modalCargar.classList.add('mostrar');
-      inputMontoCargar.value = "";
     });
 
     btnRetirar.addEventListener('click', () => {
-      menuSaldo.style.display = 'none';
       modalRetirar.classList.add('mostrar');
       inputMontoRetirar.value = "";
       inputAliasRetirar.value = "";
@@ -360,9 +375,8 @@
 
       const userRef = db.collection('users').doc(currentUser.uid);
       userRef.get().then(docSnap => {
-        let saldoActual = docSnap.data().saldoARS || 0;
+        const saldoActual = docSnap.data().saldoARS || 0;
         const nuevoSaldo = saldoActual + monto;
-
         userRef.update({ saldoARS: nuevoSaldo }).then(() => {
           alert(`Recarga exitosa. Nuevo saldo: $${nuevoSaldo}`);
           saldoSpan.textContent = nuevoSaldo;
@@ -387,8 +401,9 @@
       const userRef = db.collection('users').doc(currentUser.uid);
       userRef.get().then(docSnap => {
         const saldoActual = docSnap.data().saldoARS || 0;
+
         if (monto > saldoActual) {
-          alert("No tienes suficiente saldo.");
+          alert("No tienes suficiente saldo para retirar.");
           return;
         }
 
@@ -401,7 +416,7 @@
             estado: "pendiente",
             creado: firebase.firestore.FieldValue.serverTimestamp()
           }).then(() => {
-            alert("Solicitud de retiro enviada.");
+            alert("Solicitud de retiro enviada. Será procesada manualmente.");
             saldoSpan.textContent = saldoActual - monto;
             modalRetirar.classList.remove('mostrar');
           });
@@ -409,18 +424,19 @@
       });
     });
 
-    btnCopiarCBU.addEventListener("click", () => {
-      const texto = "Alias: lunabet.transferencia\nCBU: 0000003100050078130023";
+    function copiarTexto(texto) {
       navigator.clipboard.writeText(texto).then(() => {
-        alert("Alias y CBU copiados al portapapeles");
+        alert("Copiado al portapapeles: " + texto);
       }).catch(() => {
         alert("Error al copiar");
       });
-    });
+    }
 
     function cerrarSesion() {
       auth.signOut().then(() => {
         window.location.href = "../login.html";
+      }).catch(error => {
+        alert("Error al cerrar sesión: " + error.message);
       });
     }
 
@@ -442,4 +458,3 @@
   </script>
 </body>
 </html>
-
