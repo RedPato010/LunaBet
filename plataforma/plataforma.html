@@ -293,6 +293,22 @@
       <h2>Cargar saldo en ARS</h2>
       <label for="montoCargar">Monto a cargar (ARS):</label>
       <input type="number" id="montoCargar" min="100" step="100" />
+
+      <!-- Alias y CBU para cargar saldo -->
+      <label>Alias para carga:</label>
+      <div class="campo-copiar">
+        <span id="aliasCargaText">ejemplo_alias_carga</span>
+        <button class="btn-copiar" id="copiarAliasCargaBtn">Copiar Alias</button>
+      </div>
+      <div class="mensaje-copiado" id="mensajeAliasCarga"></div>
+
+      <label>CBU para carga:</label>
+      <div class="campo-copiar">
+        <span id="cbuCargaText">1234567890123456789012</span>
+        <button class="btn-copiar" id="copiarCbuCargaBtn">Copiar CBU</button>
+      </div>
+      <div class="mensaje-copiado" id="mensajeCbuCarga"></div>
+
       <button id="btnConfirmarCargar">Confirmar carga</button>
     </div>
   </div>
@@ -351,18 +367,28 @@
     const btnRecargar = document.getElementById("btnRecargar");
     const btnRetirar = document.getElementById("btnRetirar");
 
+    // Modal cargar
     const modalCargar = document.getElementById("modalCargar");
     const cerrarCargar = document.getElementById("cerrarCargar");
     const btnConfirmarCargar = document.getElementById("btnConfirmarCargar");
     const inputMontoCargar = document.getElementById("montoCargar");
 
+    // Alias y CBU carga
+    const aliasCargaText = document.getElementById("aliasCargaText");
+    const cbuCargaText = document.getElementById("cbuCargaText");
+    const copiarAliasCargaBtn = document.getElementById("copiarAliasCargaBtn");
+    const copiarCbuCargaBtn = document.getElementById("copiarCbuCargaBtn");
+    const mensajeAliasCarga = document.getElementById("mensajeAliasCarga");
+    const mensajeCbuCarga = document.getElementById("mensajeCbuCarga");
+
+    // Modal retirar
     const modalRetirar = document.getElementById("modalRetirar");
     const cerrarRetirar = document.getElementById("cerrarRetirar");
     const btnConfirmarRetirar = document.getElementById("btnConfirmarRetirar");
     const inputMontoRetirar = document.getElementById("montoRetirar");
     const inputAliasRetirar = document.getElementById("aliasRetirar");
 
-    // Alias y CBU fijos para copiar
+    // Alias y CBU retiro
     const aliasRetiroText = document.getElementById("aliasRetiroText");
     const cbuRetiroText = document.getElementById("cbuRetiroText");
     const copiarAliasBtn = document.getElementById("copiarAliasBtn");
@@ -410,6 +436,8 @@
       menuSaldo.style.display = 'none';
       modalCargar.classList.add('mostrar');
       inputMontoCargar.value = "";
+      mensajeAliasCarga.textContent = "";
+      mensajeCbuCarga.textContent = "";
     });
 
     // Abrir modal retirar saldo
@@ -438,25 +466,16 @@
         return;
       }
 
-      const userRef = db.collection('users').doc(currentUser.uid);
-      userRef.get().then(docSnap => {
-        let saldoActual = 0;
-        if (docSnap.exists) {
-          saldoActual = docSnap.data().saldoARS || 0;
-        }
-        const nuevoSaldo = saldoActual + monto;
-
-        // En vez de sumar saldo directamente, guardamos carga pendiente
-        db.collection('cargas').add({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          monto,
-          estado: "pendiente",
-          creado: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          alert(`Solicitud de carga enviada por $${monto}. Será aprobada manualmente.`);
-          modalCargar.classList.remove('mostrar');
-        });
+      // Guardar solicitud de carga pendiente (no sumamos saldo automático)
+      db.collection('cargas').add({
+        uid: currentUser.uid,
+        email: currentUser.email,
+        monto,
+        estado: "pendiente",
+        creado: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert(`Solicitud de carga enviada por $${monto}. Será aprobada manualmente.`);
+        modalCargar.classList.remove('mostrar');
       });
     });
 
@@ -531,6 +550,20 @@
     });
 
     // Funciones copiar al portapapeles con mensajes
+
+    copiarAliasCargaBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(aliasCargaText.textContent).then(() => {
+        mensajeAliasCarga.textContent = "Alias copiado ✅";
+        setTimeout(() => { mensajeAliasCarga.textContent = ""; }, 2500);
+      });
+    });
+
+    copiarCbuCargaBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(cbuCargaText.textContent).then(() => {
+        mensajeCbuCarga.textContent = "CBU copiado ✅";
+        setTimeout(() => { mensajeCbuCarga.textContent = ""; }, 2500);
+      });
+    });
 
     copiarAliasBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(aliasRetiroText.textContent).then(() => {
