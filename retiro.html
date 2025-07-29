@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Retirar Saldo - LunaBet</title>
   <style>
     body {
@@ -10,8 +10,14 @@
       max-width: 400px;
       margin: 40px auto;
       padding: 20px;
-      border: 1px solid #ccc;
+      background: #121212;
+      color: white;
       border-radius: 8px;
+      border: 1px solid #ff3333;
+    }
+    h2 {
+      color: #ff3333;
+      text-align: center;
     }
     label, p {
       font-weight: bold;
@@ -20,120 +26,147 @@
     }
     input {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       margin-top: 8px;
       box-sizing: border-box;
       font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      background: #333;
+      color: white;
     }
     button {
       margin-top: 25px;
-      padding: 10px 20px;
+      padding: 12px 20px;
       font-size: 18px;
       cursor: pointer;
-      background-color: #dc3545;
+      background-color: #ff3333;
       border: none;
       color: white;
       border-radius: 6px;
+      width: 100%;
+      transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #c82333;
+      background-color: #cc2929;
+    }
+    #mensaje {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      min-height: 24px;
     }
   </style>
 </head>
 <body>
+
   <h2>Retirar saldo en ARS</h2>
 
   <p>Saldo actual: <span id="saldo">Cargando...</span> ARS</p>
 
-  <label for="monto">Monto a retirar (ARS):</label>
-  <input type="number" id="monto" min="500" step="100" />
+  <label for="monto">Monto a retirar (mínimo $500):</label>
+  <input type="number" id="monto" min="500" step="100" placeholder="Ej: 1000" />
+
+  <label for="alias">Alias o CBU para el retiro:</label>
+  <input type="text" id="alias" placeholder="Ingresa tu alias o CBU" />
 
   <button onclick="solicitarRetiro()">Solicitar Retiro</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <div id="mensaje"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.firebasestorage.app",
+      storageBucket: "lunabet-73609.appspot.com",
       messagingSenderId: "45582135337",
       appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
       measurementId: "G-0XC4PX3HK9"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
 
-    let currentUser;
+    let currentUser = null;
 
-    onAuthStateChanged(auth, async (user) => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
         await mostrarSaldo();
       } else {
-        alert("Debes iniciar sesión");
-        window.location.href = "login.html";
+        alert("Debes iniciar sesión para retirar saldo.");
+        window.location.href = "index.html"; // o la página de login que tengas
       }
     });
 
     async function mostrarSaldo() {
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        document.getElementById("saldo").textContent = data.saldoARS ?? 0;
+      if (!currentUser) return;
+      const userRef = database.ref('users/' + currentUser.uid);
+      const snapshot = await userRef.once('value');
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        document.getElementById('saldo').textContent = data.saldoARS ?? 0;
       } else {
-        document.getElementById("saldo").textContent = 0;
+        document.getElementById('saldo').textContent = 0;
       }
     }
 
     async function solicitarRetiro() {
-      const monto = parseInt(document.getElementById("monto").value);
+      const montoInput = document.getElementById('monto');
+      const aliasInput = document.getElementById('alias');
+      const mensajeDiv = document.getElementById('mensaje');
+
+      const monto = parseInt(montoInput.value);
+      const alias = aliasInput.value.trim();
 
       if (isNaN(monto) || monto < 500) {
-        alert("El retiro mínimo es de $500");
+        mensajeDiv.style.color = '#ff3333';
+        mensajeDiv.textContent = "El monto mínimo para retirar es $500.";
         return;
       }
 
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
-
-      let saldoActual = 0;
-      if (userSnap.exists()) {
-        saldoActual = userSnap.data().saldoARS || 0;
+      if (!alias) {
+        mensajeDiv.style.color = '#ff3333';
+        mensajeDiv.textContent = "Debes ingresar un alias o CBU válido.";
+        return;
       }
+
+      const userRef = database.ref('users/' + currentUser.uid);
+      const snapshot = await userRef.once('value');
+      const userData = snapshot.val();
+      const saldoActual = userData?.saldoARS ?? 0;
 
       if (monto > saldoActual) {
-        alert("No tienes suficiente saldo para retirar.");
+        mensajeDiv.style.color = '#ff3333';
+        mensajeDiv.textContent = "No tienes saldo suficiente.";
         return;
       }
 
-      await updateDoc(userRef, {
-        saldoARS: saldoActual - monto
-      });
+      // Restar saldo
+      await userRef.update({ saldoARS: saldoActual - monto });
 
-      const retiroData = {
+      // Guardar solicitud de retiro
+      await database.ref('retiros').push({
         uid: currentUser.uid,
         email: currentUser.email,
         monto,
+        alias,
         estado: "pendiente",
-        creado: serverTimestamp()
-      };
+        creado: Date.now()
+      });
 
-      await addDoc(collection(db, "retiros"), retiroData);
+      mensajeDiv.style.color = '#4CAF50';
+      mensajeDiv.textContent = "Solicitud de retiro enviada. Será procesada pronto.";
 
-      alert("Solicitud de retiro enviada. Será procesada manualmente.");
-      document.getElementById("monto").value = "";
+      montoInput.value = '';
+      aliasInput.value = '';
       await mostrarSaldo();
     }
   </script>
