@@ -125,7 +125,7 @@
     auth.createUserWithEmailAndPassword(email, password)
       .then(userCredential => {
         const uid = userCredential.user.uid;
-        // Guardar el nombre de usuario en la base de datos en ruta 'users/{uid}'
+        // Guardar el nombre de usuario y email en la base de datos
         return database.ref('users/' + uid).set({
           username: username,
           email: email,
@@ -134,7 +134,7 @@
       })
       .then(() => {
         mensajeDiv.style.color = "#33ff33";
-        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a la plataforma...";
+        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a plataforma...";
         setTimeout(() => {
           window.location.href = "plataforma/plataforma.html";
         }, 1500);
