@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plataforma - Lunabet</title>
+  <title>Plataforma - LunaBet</title>
   <style>
     body {
       margin: 0;
@@ -148,81 +148,65 @@
       font-size: 16px;
     }
 
-    /* Modal Fondo */
-    #modalFondo {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(5px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 5000;
+    /* Modal Retiro */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0;
+      top: 0;
+      width: 100%; 
+      height: 100%; 
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
     }
 
-    /* Modal Contenedor */
-    #modalRecarga {
-      background: #222;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #ff3333aa;
-      max-width: 400px;
-      width: 90%;
+    .modal-contenido {
+      background-color: #1e1e1e;
+      margin: 10% auto; 
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
       color: white;
-      position: relative;
+      box-shadow: 0 0 10px #ff3333;
     }
 
-    /* Botón cerrar */
-    #modalRecarga button.cerrar {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      background: none;
-      border: none;
-      font-size: 22px;
-      color: #ff3333;
-      cursor: pointer;
+    .modal-contenido label {
+      display: block;
+      margin-top: 15px;
       font-weight: bold;
     }
 
-    #modalRecarga h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-
-    #modalRecarga label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    #modalRecarga input[type="number"] {
+    .modal-contenido input {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
+      margin-top: 5px;
       border-radius: 6px;
       border: none;
       font-size: 16px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
     }
 
-    #modalRecarga button.enviar {
-      width: 100%;
+    .modal-contenido button {
+      margin-top: 20px;
       background-color: #ff3333;
       border: none;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+      border-radius: 6px;
       color: white;
-      font-weight: 700;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
     }
 
-    #modalRecarga button.enviar:hover {
+    .modal-contenido button:hover {
       background-color: #cc2929;
+    }
+
+    .cerrar {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     @media (max-width: 600px) {
@@ -271,29 +255,34 @@
     <div class="descripcion">Elige un juego desde el menú para comenzar a jugar.</div>
   </main>
 
-  <!-- Modal carga saldo -->
-  <div id="modalFondo">
-    <div id="modalRecarga">
-      <button class="cerrar" id="cerrarModal">&times;</button>
-      <h2>Cargar saldo en ARS</h2>
-      <p>Transferí al alias: <strong>lunabet.arg</strong></p>
-      <label for="montoRecarga">Monto a recargar (mínimo $100 ARS)</label>
-      <input type="number" id="montoRecarga" min="100" step="100" />
-      <button class="enviar" id="enviarRecargaBtn">Enviar Recarga</button>
+  <!-- Modal Retiro -->
+  <div id="modalRetiro" class="modal">
+    <div class="modal-contenido">
+      <span class="cerrar" id="cerrarModalRetiro">&times;</span>
+      <h2>Solicitar Retiro</h2>
+
+      <label for="montoRetiro">Monto a retirar (ARS):</label>
+      <input type="number" id="montoRetiro" min="500" step="100" />
+
+      <label for="aliasRetiro">Alias o CBU:</label>
+      <input type="text" id="aliasRetiro" />
+
+      <button id="btnEnviarRetiro">Enviar Solicitud</button>
     </div>
   </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
+      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.appspot.com",
+      storageBucket: "lunabet-73609.firebasestorage.app",
       messagingSenderId: "45582135337",
       appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
       measurementId: "G-0XC4PX3HK9"
@@ -301,42 +290,30 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db = firebase.database();
 
-    // Variables DOM
     const saldoSpan = document.getElementById("saldo");
     const saldoContainer = document.getElementById("saldoContainer");
     const menuSaldo = document.getElementById("menuSaldo");
     const btnRecargar = document.getElementById("btnRecargar");
     const btnRetirar = document.getElementById("btnRetirar");
 
-    const modalFondo = document.getElementById("modalFondo");
-    const cerrarModalBtn = document.getElementById("cerrarModal");
-    const enviarRecargaBtn = document.getElementById("enviarRecargaBtn");
-    const montoRecargaInput = document.getElementById("montoRecarga");
-
-    let currentUser;
-
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "../login.html";
       } else {
-        currentUser = user;
-        const saldoRef = db.collection('users').doc(user.uid);
-        saldoRef.get().then(docSnap => {
-          if (docSnap.exists) {
-            const data = docSnap.data();
-            saldoSpan.textContent = data.saldoARS ?? 0;
-          } else {
-            saldoSpan.textContent = 0;
-          }
+        const uid = user.uid;
+        const saldoRef = db.ref('usuarios/' + uid + '/saldo');
+        saldoRef.once('value').then(snapshot => {
+          const saldo = snapshot.val() ?? 0;
+          saldoSpan.textContent = saldo;
         });
       }
     });
 
     // Mostrar/ocultar menú saldo al hacer click
     saldoContainer.addEventListener('click', (e) => {
-      e.stopPropagation();
+      e.stopPropagation(); // para que no cierre inmediatamente el menú
       if (menuSaldo.style.display === 'flex') {
         menuSaldo.style.display = 'none';
       } else {
@@ -350,48 +327,90 @@
       menuSaldo.style.display = 'none';
     });
 
-    // Abrir modal recarga
     btnRecargar.addEventListener('click', () => {
-      menuSaldo.style.display = 'none';
-      montoRecargaInput.value = "";
-      modalFondo.style.display = 'flex';
+      // Redirigir a la página cargar.html para la recarga
+      window.location.href = '../cargar.html';
     });
 
-    // Cerrar modal
-    cerrarModalBtn.addEventListener('click', () => {
-      modalFondo.style.display = 'none';
+    // Modal retirar saldo
+    const modalRetiro = document.getElementById('modalRetiro');
+    const btnCerrarModalRetiro = document.getElementById('cerrarModalRetiro');
+    const btnEnviarRetiro = document.getElementById('btnEnviarRetiro');
+
+    btnRetirar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      modalRetiro.style.display = 'block';
+      menuSaldo.style.display = 'none'; // ocultar menú saldo
     });
 
-    // Enviar recarga a Firestore
-    enviarRecargaBtn.addEventListener('click', async () => {
-      const monto = parseInt(montoRecargaInput.value);
+    btnCerrarModalRetiro.addEventListener('click', () => {
+      modalRetiro.style.display = 'none';
+    });
 
-      if (isNaN(monto) || monto < 100) {
-        alert("El monto mínimo es $100");
+    window.addEventListener('click', (event) => {
+      if (event.target === modalRetiro) {
+        modalRetiro.style.display = 'none';
+      }
+    });
+
+    btnEnviarRetiro.addEventListener('click', async () => {
+      const monto = parseInt(document.getElementById('montoRetiro').value);
+      const alias = document.getElementById('aliasRetiro').value.trim();
+
+      if (isNaN(monto) || monto < 500) {
+        alert('El retiro mínimo es de $500');
+        return;
+      }
+
+      if (alias.length < 5) {
+        alert('Alias o CBU inválido');
+        return;
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Debes iniciar sesión');
         return;
       }
 
       try {
-        await db.collection('recargasPendientes').add({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          monto: monto,
-          estado: "pendiente",
-          creado: firebase.firestore.FieldValue.serverTimestamp()
+        // Leer saldo actual de Realtime Database
+        const saldoRef = db.ref('usuarios/' + user.uid + '/saldo');
+        const snapshot = await saldoRef.once('value');
+        const saldoActual = snapshot.val() ?? 0;
+
+        if (monto > saldoActual) {
+          alert('No tienes suficiente saldo para retirar.');
+          return;
+        }
+
+        // Restar saldo
+        await saldoRef.set(saldoActual - monto);
+
+        // Guardar solicitud retiro en Firebase Realtime Database
+        const retiroRef = db.ref('retiros').push();
+        await retiroRef.set({
+          uid: user.uid,
+          email: user.email,
+          monto,
+          alias,
+          estado: 'pendiente',
+          creado: Date.now()
         });
 
-        alert("Recarga enviada. Será verificada en breve.");
-        montoRecargaInput.value = "";
-        modalFondo.style.display = 'none';
-      } catch (error) {
-        alert("Error al enviar la recarga");
-        console.error(error);
-      }
-    });
+        alert('Solicitud de retiro enviada. Será procesada manualmente.');
 
-    // Botón retirar sigue igual: redirige a retiro.html
-    btnRetirar.addEventListener('click', () => {
-      window.location.href = '../retiro.html';
+        // Reset inputs y cerrar modal
+        document.getElementById('montoRetiro').value = '';
+        document.getElementById('aliasRetiro').value = '';
+        modalRetiro.style.display = 'none';
+
+        // Actualizar saldo en pantalla
+        saldoSpan.textContent = saldoActual - monto;
+
+      } catch (error) {
+        alert('Error al enviar la solicitud: ' + error.message);
+      }
     });
 
     function cerrarSesion() {
@@ -422,171 +441,3 @@
 
 </body>
 </html>
-
-<!-- Modal Retiro -->
-<div id="modalRetiro" class="modal">
-  <div class="modal-contenido">
-    <span class="cerrar" id="cerrarModalRetiro">&times;</span>
-    <h2>Solicitar Retiro</h2>
-
-    <label for="montoRetiro">Monto a retirar (ARS):</label>
-    <input type="number" id="montoRetiro" min="500" step="100" />
-
-    <label for="aliasRetiro">Alias o CBU:</label>
-    <input type="text" id="aliasRetiro" />
-
-    <button id="btnEnviarRetiro">Enviar Solicitud</button>
-  </div>
-</div>
-
-<style>
-  /* Estilos modal retiro */
-  .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto;
-    background-color: rgba(0,0,0,0.7);
-  }
-
-  .modal-contenido {
-    background-color: #1e1e1e;
-    margin: 10% auto; 
-    padding: 20px;
-    border-radius: 10px;
-    width: 320px;
-    color: white;
-    box-shadow: 0 0 10px #ff3333;
-  }
-
-  .modal-contenido label {
-    display: block;
-    margin-top: 15px;
-    font-weight: bold;
-  }
-
-  .modal-contenido input {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border-radius: 6px;
-    border: none;
-    font-size: 16px;
-  }
-
-  .modal-contenido button {
-    margin-top: 20px;
-    background-color: #ff3333;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    border-radius: 6px;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  .modal-contenido button:hover {
-    background-color: #cc2929;
-  }
-
-  .cerrar {
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-</style>
-
-<script>
-  // Variables que ya tenés que tener definidas en tu plataforma.html
-  // const auth = firebase.auth();
-  // const db = firebase.database();
-  // const saldoSpan = document.getElementById("saldo");
-  // const menuSaldo = document.getElementById("menuSaldo");
-
-  const modalRetiro = document.getElementById('modalRetiro');
-  const btnRetirar = document.getElementById('btnRetirar');
-  const btnCerrarModalRetiro = document.getElementById('cerrarModalRetiro');
-  const btnEnviarRetiro = document.getElementById('btnEnviarRetiro');
-
-  btnRetirar.addEventListener('click', (e) => {
-    e.stopPropagation();
-    modalRetiro.style.display = 'block';
-    menuSaldo.style.display = 'none'; // ocultamos el menú saldo
-  });
-
-  btnCerrarModalRetiro.addEventListener('click', () => {
-    modalRetiro.style.display = 'none';
-  });
-
-  window.addEventListener('click', (event) => {
-    if (event.target === modalRetiro) {
-      modalRetiro.style.display = 'none';
-    }
-  });
-
-  btnEnviarRetiro.addEventListener('click', async () => {
-    const monto = parseInt(document.getElementById('montoRetiro').value);
-    const alias = document.getElementById('aliasRetiro').value.trim();
-
-    if (isNaN(monto) || monto < 500) {
-      alert('El retiro mínimo es de $500');
-      return;
-    }
-
-    if (alias.length < 5) {
-      alert('Alias o CBU inválido');
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
-    }
-
-    try {
-      // Leer saldo actual de Realtime Database
-      const saldoRef = db.ref('usuarios/' + user.uid + '/saldo');
-      const snapshot = await saldoRef.once('value');
-      const saldoActual = snapshot.val() ?? 0;
-
-      if (monto > saldoActual) {
-        alert('No tienes suficiente saldo para retirar.');
-        return;
-      }
-
-      // Restar saldo
-      await saldoRef.set(saldoActual - monto);
-
-      // Guardar solicitud retiro en Firebase Realtime Database (puedes cambiar a Firestore si prefieres)
-      const retiroRef = db.ref('retiros').push();
-      await retiroRef.set({
-        uid: user.uid,
-        email: user.email,
-        monto,
-        alias,
-        estado: 'pendiente',
-        creado: Date.now()
-      });
-
-      alert('Solicitud de retiro enviada. Será procesada manualmente.');
-
-      // Reset inputs y cerrar modal
-      document.getElementById('montoRetiro').value = '';
-      document.getElementById('aliasRetiro').value = '';
-      modalRetiro.style.display = 'none';
-
-      // Actualizar saldo en pantalla
-      saldoSpan.textContent = saldoActual - monto;
-
-    } catch (error) {
-      alert('Error al enviar la solicitud: ' + error.message);
-    }
-  });
-</script>
