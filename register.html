@@ -107,7 +107,7 @@
   const auth = firebase.auth();
   const database = firebase.database();
 
-  function registrar() {
+  async function registrar() {
     const username = document.getElementById("username").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -120,29 +120,40 @@
     }
 
     mensajeDiv.style.color = "#ff6666";
-    mensajeDiv.textContent = "Registrando usuario...";
+    mensajeDiv.textContent = "Verificando nombre de usuario...";
 
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(userCredential => {
-        const uid = userCredential.user.uid;
-        // Guardar el nombre de usuario y email en la base de datos
-        return database.ref('users/' + uid).set({
-          username: username,
-          email: email,
-          createdAt: Date.now()
-        });
-      })
-      .then(() => {
-        mensajeDiv.style.color = "#33ff33";
-        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a plataforma...";
-        setTimeout(() => {
-          window.location.href = "plataforma/plataforma.html";
-        }, 1500);
-      })
-      .catch(error => {
+    try {
+      // Verificar si el username ya existe
+      const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+      if (snapshot.exists()) {
         mensajeDiv.style.color = "#ff6666";
-        mensajeDiv.textContent = "Error: " + error.message;
+        mensajeDiv.textContent = "El nombre de usuario ya está en uso. Por favor elige otro.";
+        return;
+      }
+
+      mensajeDiv.textContent = "Registrando usuario...";
+
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
+
+      // Guardar datos del usuario
+      await database.ref('users/' + uid).set({
+        username: username,
+        email: email,
+        createdAt: Date.now()
       });
+
+      mensajeDiv.style.color = "#33ff33";
+      mensajeDiv.textContent = "Registro exitoso. Redirigiendo a plataforma...";
+
+      setTimeout(() => {
+        window.location.href = "plataforma/plataforma.html";
+      }, 1500);
+
+    } catch (error) {
+      mensajeDiv.style.color = "#ff6666";
+      mensajeDiv.textContent = "Error: " + error.message;
+    }
   }
 </script>
 
