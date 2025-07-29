@@ -11,7 +11,6 @@
       background: #121212;
       color: white;
     }
-
     header {
       background: #1e1e1e;
       display: flex;
@@ -21,13 +20,11 @@
       border-bottom: 1px solid #333;
       flex-wrap: wrap;
     }
-
     .logo {
       font-size: 24px;
       font-weight: bold;
       color: #ff3333;
     }
-
     .saldo {
       font-size: 16px;
       background: #222;
@@ -39,7 +36,6 @@
       display: inline-block;
       color: #fff;
     }
-
     #menuSaldo {
       display: none;
       position: absolute;
@@ -54,7 +50,6 @@
       min-width: 140px;
       flex-direction: column;
     }
-
     #menuSaldo button {
       width: 100%;
       background: none;
@@ -67,11 +62,9 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     #menuSaldo button:hover {
       background-color: #ff3333;
     }
-
     nav {
       display: flex;
       align-items: center;
@@ -79,17 +72,14 @@
       position: relative;
       margin-top: 10px;
     }
-
     .menu-item {
       position: relative;
       cursor: pointer;
       user-select: none;
     }
-
     .menu-item.activo {
       color: #ff3333;
     }
-
     .submenu {
       display: none;
       position: absolute;
@@ -103,22 +93,18 @@
       flex-direction: column;
       min-width: 140px;
     }
-
     .submenu a {
       color: white;
       text-decoration: none;
       padding: 6px 0;
       display: block;
     }
-
     .submenu a:hover {
       color: #ff3333;
     }
-
     .submenu.mostrar {
       display: flex !important;
     }
-
     .logout-btn {
       background-color: #ff3333;
       color: white;
@@ -128,21 +114,17 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
     .logout-btn:hover {
       background-color: #cc2929;
     }
-
     main {
       padding: 40px;
       text-align: center;
     }
-
     .bienvenida {
       font-size: 28px;
       margin-bottom: 10px;
     }
-
     .descripcion {
       color: #aaa;
       font-size: 16px;
@@ -158,11 +140,9 @@
       justify-content: center;
       align-items: center;
     }
-
     .modal-bg.mostrar {
       display: flex;
     }
-
     .modal {
       background: #222;
       padding: 20px 30px;
@@ -172,18 +152,15 @@
       color: white;
       position: relative;
     }
-
     .modal h2 {
       margin-top: 0;
       margin-bottom: 15px;
     }
-
     .modal label {
       display: block;
       margin-top: 12px;
       font-weight: bold;
     }
-
     .modal input {
       width: 100%;
       padding: 8px;
@@ -193,7 +170,6 @@
       border: none;
       outline: none;
     }
-
     .modal button {
       margin-top: 20px;
       width: 100%;
@@ -206,11 +182,9 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     .modal button:hover {
       background-color: #cc2929;
     }
-
     .cerrar-modal {
       position: absolute;
       top: 10px;
@@ -220,16 +194,6 @@
       cursor: pointer;
       font-weight: bold;
     }
-
-    .copiar-btn {
-      background: none;
-      border: none;
-      color: #ff3333;
-      font-size: 18px;
-      cursor: pointer;
-      margin-left: 8px;
-    }
-
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -247,6 +211,7 @@
 
   <header>
     <div class="logo">LunaBet</div>
+
     <nav>
       <div class="menu-item" id="menuMiniJuegos">
         🎮 Mini Juegos
@@ -257,6 +222,7 @@
           <a href="minas.html">Minas</a>
         </div>
       </div>
+
       <div class="saldo" id="saldoContainer">
         Saldo: $<span id="saldo">0</span>
         <div id="menuSaldo">
@@ -264,6 +230,7 @@
           <button id="btnRetirar">Retirar saldo</button>
         </div>
       </div>
+
       <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </nav>
   </header>
@@ -273,25 +240,23 @@
     <div class="descripcion">Elige un juego desde el menú para comenzar a jugar.</div>
   </main>
 
-  <!-- MODAL CARGAR -->
+  <!-- MODAL CARGAR SALDO -->
   <div class="modal-bg" id="modalCargar">
     <div class="modal">
       <span class="cerrar-modal" id="cerrarCargar">&times;</span>
       <h2>Cargar saldo en ARS</h2>
-      <p><strong>Alias:</strong> lunabet.transferencia <button class="copiar-btn" onclick="copiarTexto('lunabet.transferencia', 'Alias')">📋</button></p>
-      <p><strong>CBU:</strong> 0000003100050078130023 <button class="copiar-btn" onclick="copiarTexto('0000003100050078130023', 'CBU')">📋</button></p>
-      <label for="montoCargar">Monto a cargar:</label>
+      <label for="montoCargar">Monto a cargar (ARS):</label>
       <input type="number" id="montoCargar" min="100" step="100" />
       <button id="btnConfirmarCargar">Confirmar carga</button>
     </div>
   </div>
 
-  <!-- MODAL RETIRAR -->
+  <!-- MODAL RETIRAR SALDO -->
   <div class="modal-bg" id="modalRetirar">
     <div class="modal">
       <span class="cerrar-modal" id="cerrarRetirar">&times;</span>
-      <h2>Retirar saldo</h2>
-      <label for="montoRetirar">Monto a retirar:</label>
+      <h2>Retirar saldo en ARS</h2>
+      <label for="montoRetirar">Monto a retirar (ARS):</label>
       <input type="number" id="montoRetirar" min="500" step="100" />
       <label for="aliasRetirar">Alias o CBU:</label>
       <input type="text" id="aliasRetirar" />
@@ -309,9 +274,10 @@
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.appspot.com",
+      storageBucket: "lunabet-73609.firebasestorage.app",
       messagingSenderId: "45582135337",
-      appId: "1:45582135337:web:3cb9190e37827d9cc72c38"
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -326,14 +292,14 @@
 
     const modalCargar = document.getElementById("modalCargar");
     const cerrarCargar = document.getElementById("cerrarCargar");
-    const inputMontoCargar = document.getElementById("montoCargar");
     const btnConfirmarCargar = document.getElementById("btnConfirmarCargar");
+    const inputMontoCargar = document.getElementById("montoCargar");
 
     const modalRetirar = document.getElementById("modalRetirar");
     const cerrarRetirar = document.getElementById("cerrarRetirar");
+    const btnConfirmarRetirar = document.getElementById("btnConfirmarRetirar");
     const inputMontoRetirar = document.getElementById("montoRetirar");
     const inputAliasRetirar = document.getElementById("aliasRetirar");
-    const btnConfirmarRetirar = document.getElementById("btnConfirmarRetirar");
 
     let currentUser;
 
@@ -342,119 +308,147 @@
         window.location.href = "../login.html";
       } else {
         currentUser = user;
-        db.collection('users').doc(user.uid).get().then(docSnap => {
-          saldoSpan.textContent = docSnap.exists ? docSnap.data().saldoARS || 0 : 0;
-        });
+        cargarSaldoUsuario();
       }
     });
 
+    function cargarSaldoUsuario() {
+      db.collection('users').doc(currentUser.uid).get().then(docSnap => {
+        if (docSnap.exists) {
+          const data = docSnap.data();
+          saldoSpan.textContent = data.saldoARS ?? 0;
+        } else {
+          saldoSpan.textContent = 0;
+          db.collection('users').doc(currentUser.uid).set({ saldoARS: 0 });
+        }
+      });
+    }
+
+    // Mostrar/ocultar menú saldo al hacer click
     saldoContainer.addEventListener('click', (e) => {
       e.stopPropagation();
       menuSaldo.style.display = (menuSaldo.style.display === 'flex') ? 'none' : 'flex';
       menuSaldo.style.flexDirection = 'column';
     });
 
+    // Cerrar menú saldo si clic fuera
     document.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
     });
 
-    btnRecargar.onclick = () => {
+    // Abrir modal cargar saldo
+    btnRecargar.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
-      modalCargar.classList.add("mostrar");
-    };
+      modalCargar.classList.add('mostrar');
+      inputMontoCargar.value = "";
+    });
 
-    btnRetirar.onclick = () => {
+    // Abrir modal retirar saldo
+    btnRetirar.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
-      modalRetirar.classList.add("mostrar");
-    };
+      modalRetirar.classList.add('mostrar');
+      inputMontoRetirar.value = "";
+      inputAliasRetirar.value = "";
+    });
 
-    cerrarCargar.onclick = () => modalCargar.classList.remove("mostrar");
-    cerrarRetirar.onclick = () => modalRetirar.classList.remove("mostrar");
+    // Cerrar modales
+    cerrarCargar.addEventListener('click', () => {
+      modalCargar.classList.remove('mostrar');
+    });
+    cerrarRetirar.addEventListener('click', () => {
+      modalRetirar.classList.remove('mostrar');
+    });
 
-    btnConfirmarCargar.onclick = () => {
+    // Confirmar carga saldo: crea solicitud pendiente
+    btnConfirmarCargar.addEventListener('click', () => {
       const monto = parseInt(inputMontoCargar.value);
       if (isNaN(monto) || monto < 100) {
         alert("Ingresa un monto válido (mínimo $100)");
         return;
       }
 
-      const ref = db.collection("users").doc(currentUser.uid);
-      ref.get().then(doc => {
-        const saldo = doc.exists ? (doc.data().saldoARS || 0) : 0;
-        ref.update({ saldoARS: saldo + monto }).then(() => {
-          saldoSpan.textContent = saldo + monto;
-          alert("Saldo cargado exitosamente");
-          modalCargar.classList.remove("mostrar");
-        });
+      // Crear solicitud de carga pendiente
+      db.collection('cargas').add({
+        uid: currentUser.uid,
+        email: currentUser.email,
+        monto,
+        estado: "pendiente",
+        creado: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Solicitud de carga enviada. Será procesada manualmente.");
+        modalCargar.classList.remove('mostrar');
+      }).catch((error) => {
+        alert("Error al enviar solicitud: " + error.message);
       });
-    };
+    });
 
-    btnConfirmarRetirar.onclick = () => {
+    // Confirmar retiro saldo
+    btnConfirmarRetirar.addEventListener('click', () => {
       const monto = parseInt(inputMontoRetirar.value);
       const alias = inputAliasRetirar.value.trim();
 
-      if (isNaN(monto) || monto < 500) return alert("El mínimo es $500");
-      if (alias.length < 5) return alert("Alias o CBU inválido");
+      if (isNaN(monto) || monto < 500) {
+        alert("El retiro mínimo es de $500");
+        return;
+      }
+      if (alias.length < 5) {
+        alert("Alias o CBU inválido");
+        return;
+      }
 
-      const ref = db.collection("users").doc(currentUser.uid);
-      ref.get().then(doc => {
-        const saldo = doc.exists ? (doc.data().saldoARS || 0) : 0;
-        if (monto > saldo) return alert("Saldo insuficiente");
+      const userRef = db.collection('users').doc(currentUser.uid);
+      userRef.get().then(docSnap => {
+        if (!docSnap.exists) {
+          alert("Error al obtener saldo.");
+          return;
+        }
+        const saldoActual = docSnap.data().saldoARS || 0;
 
-        ref.update({ saldoARS: saldo - monto }).then(() => {
-          db.collection("retiros").add({
+        if (monto > saldoActual) {
+          alert("No tienes suficiente saldo para retirar.");
+          return;
+        }
+
+        userRef.update({ saldoARS: saldoActual - monto }).then(() => {
+          // Guardar solicitud de retiro
+          db.collection('retiros').add({
             uid: currentUser.uid,
             email: currentUser.email,
-            monto, alias,
+            monto,
+            alias,
             estado: "pendiente",
             creado: firebase.firestore.FieldValue.serverTimestamp()
           }).then(() => {
-            saldoSpan.textContent = saldo - monto;
-            alert("Solicitud enviada");
-            modalRetirar.classList.remove("mostrar");
+            alert("Solicitud de retiro enviada. Será procesada manualmente.");
+            saldoSpan.textContent = saldoActual - monto;
+            modalRetirar.classList.remove('mostrar');
           });
         });
       });
-    };
+    });
 
-    function copiarTexto(texto, tipo) {
-      navigator.clipboard.writeText(texto).then(() => {
-        mostrarMensajeCopiado(`${tipo} copiado`);
-      }).catch(() => {
-        alert("No se pudo copiar");
+    function cerrarSesion() {
+      auth.signOut().then(() => {
+        window.location.href = "../login.html";
+      }).catch(error => {
+        alert("Error al cerrar sesión: " + error.message);
       });
     }
 
-    function mostrarMensajeCopiado(texto) {
-      const msg = document.createElement("div");
-      msg.textContent = texto;
-      msg.style.position = "fixed";
-      msg.style.bottom = "20px";
-      msg.style.left = "50%";
-      msg.style.transform = "translateX(-50%)";
-      msg.style.background = "#333";
-      msg.style.color = "white";
-      msg.style.padding = "10px 20px";
-      msg.style.borderRadius = "8px";
-      msg.style.boxShadow = "0 0 10px #000";
-      msg.style.zIndex = "999";
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 2500);
-    }
+    // Menú juegos
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuItem = document.getElementById('menuMiniJuegos');
+      const submenu = document.getElementById('submenu');
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const menuItem = document.getElementById("menuMiniJuegos");
-      const submenu = document.getElementById("submenu");
-
-      menuItem.addEventListener("click", e => {
+      menuItem.addEventListener('click', (e) => {
         e.stopPropagation();
-        submenu.classList.toggle("mostrar");
-        menuItem.classList.toggle("activo");
+        submenu.classList.toggle('mostrar');
+        menuItem.classList.toggle('activo');
       });
 
-      document.addEventListener("click", () => {
-        submenu.classList.remove("mostrar");
-        menuItem.classList.remove("activo");
+      document.addEventListener('click', () => {
+        submenu.classList.remove('mostrar');
+        menuItem.classList.remove('activo');
       });
     });
   </script>
