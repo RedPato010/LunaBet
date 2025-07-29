@@ -422,3 +422,171 @@
 
 </body>
 </html>
+
+<!-- Modal Retiro -->
+<div id="modalRetiro" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" id="cerrarModalRetiro">&times;</span>
+    <h2>Solicitar Retiro</h2>
+
+    <label for="montoRetiro">Monto a retirar (ARS):</label>
+    <input type="number" id="montoRetiro" min="500" step="100" />
+
+    <label for="aliasRetiro">Alias o CBU:</label>
+    <input type="text" id="aliasRetiro" />
+
+    <button id="btnEnviarRetiro">Enviar Solicitud</button>
+  </div>
+</div>
+
+<style>
+  /* Estilos modal retiro */
+  .modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+  }
+
+  .modal-contenido {
+    background-color: #1e1e1e;
+    margin: 10% auto; 
+    padding: 20px;
+    border-radius: 10px;
+    width: 320px;
+    color: white;
+    box-shadow: 0 0 10px #ff3333;
+  }
+
+  .modal-contenido label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+
+  .modal-contenido input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+  }
+
+  .modal-contenido button {
+    margin-top: 20px;
+    background-color: #ff3333;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .modal-contenido button:hover {
+    background-color: #cc2929;
+  }
+
+  .cerrar {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  // Variables que ya tenés que tener definidas en tu plataforma.html
+  // const auth = firebase.auth();
+  // const db = firebase.database();
+  // const saldoSpan = document.getElementById("saldo");
+  // const menuSaldo = document.getElementById("menuSaldo");
+
+  const modalRetiro = document.getElementById('modalRetiro');
+  const btnRetirar = document.getElementById('btnRetirar');
+  const btnCerrarModalRetiro = document.getElementById('cerrarModalRetiro');
+  const btnEnviarRetiro = document.getElementById('btnEnviarRetiro');
+
+  btnRetirar.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modalRetiro.style.display = 'block';
+    menuSaldo.style.display = 'none'; // ocultamos el menú saldo
+  });
+
+  btnCerrarModalRetiro.addEventListener('click', () => {
+    modalRetiro.style.display = 'none';
+  });
+
+  window.addEventListener('click', (event) => {
+    if (event.target === modalRetiro) {
+      modalRetiro.style.display = 'none';
+    }
+  });
+
+  btnEnviarRetiro.addEventListener('click', async () => {
+    const monto = parseInt(document.getElementById('montoRetiro').value);
+    const alias = document.getElementById('aliasRetiro').value.trim();
+
+    if (isNaN(monto) || monto < 500) {
+      alert('El retiro mínimo es de $500');
+      return;
+    }
+
+    if (alias.length < 5) {
+      alert('Alias o CBU inválido');
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert('Debes iniciar sesión');
+      return;
+    }
+
+    try {
+      // Leer saldo actual de Realtime Database
+      const saldoRef = db.ref('usuarios/' + user.uid + '/saldo');
+      const snapshot = await saldoRef.once('value');
+      const saldoActual = snapshot.val() ?? 0;
+
+      if (monto > saldoActual) {
+        alert('No tienes suficiente saldo para retirar.');
+        return;
+      }
+
+      // Restar saldo
+      await saldoRef.set(saldoActual - monto);
+
+      // Guardar solicitud retiro en Firebase Realtime Database (puedes cambiar a Firestore si prefieres)
+      const retiroRef = db.ref('retiros').push();
+      await retiroRef.set({
+        uid: user.uid,
+        email: user.email,
+        monto,
+        alias,
+        estado: 'pendiente',
+        creado: Date.now()
+      });
+
+      alert('Solicitud de retiro enviada. Será procesada manualmente.');
+
+      // Reset inputs y cerrar modal
+      document.getElementById('montoRetiro').value = '';
+      document.getElementById('aliasRetiro').value = '';
+      modalRetiro.style.display = 'none';
+
+      // Actualizar saldo en pantalla
+      saldoSpan.textContent = saldoActual - monto;
+
+    } catch (error) {
+      alert('Error al enviar la solicitud: ' + error.message);
+    }
+  });
+</script>
