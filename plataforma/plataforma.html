@@ -251,12 +251,13 @@
     });
 
     btnRecargar.addEventListener('click', () => {
-      window.location.href = 'recargar.html';
-    });
+  window.location.href = '../cargar.html';
+});
 
-    btnRetirar.addEventListener('click', () => {
-      window.location.href = 'retiro.html';
-    });
+btnRetirar.addEventListener('click', () => {
+  window.location.href = '../retiro.html';
+});
+
 
     function cerrarSesion() {
       auth.signOut().then(() => {
