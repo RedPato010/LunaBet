@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LunaBet - Login / Registro</title>
+  <title>LunaBet - Plataforma</title>
   <style>
     body {
       margin: 0;
@@ -16,243 +16,188 @@
     }
     header {
       background: #1e1e1e;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       padding: 15px 30px;
-      border-bottom: 1px solid #333;
-      flex-wrap: wrap;
-    }
-    .logo {
       font-size: 24px;
       font-weight: bold;
       color: #ff3333;
     }
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-top: 10px;
-    }
     main {
       flex-grow: 1;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px 20px;
-    }
-    .modal {
-      background: #222;
-      padding: 30px 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #ff3333;
-      width: 350px;
-      max-width: 90vw;
-      color: white;
-    }
-    h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
+      gap: 20px;
+      padding: 20px;
       text-align: center;
     }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 25px;
-      gap: 10px;
-    }
-    .tab-btn {
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      color: #bbb;
-      font-weight: bold;
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    .tab-btn.active {
+    button {
       background: #ff3333;
-      color: white;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-    input {
-      background: #111;
       border: none;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 15px;
       color: white;
-      font-size: 16px;
-    }
-    button.submit-btn {
-      background-color: #ff3333;
-      color: white;
-      border: none;
+      padding: 15px 40px;
+      font-size: 20px;
       border-radius: 8px;
-      padding: 12px;
-      font-size: 18px;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-    button.submit-btn:hover {
-      background-color: #cc2929;
+    button:hover {
+      background: #cc2929;
     }
-    #mensaje {
-      margin-top: 12px;
-      min-height: 24px;
+    /* MODAL BASE */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-bg.show {
+      display: flex;
+    }
+    .modal {
+      background: #222;
+      padding: 30px;
+      border-radius: 10px;
+      width: 320px;
+      box-shadow: 0 0 10px #ff3333;
+    }
+    .modal h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #ff3333;
+    }
+    .modal input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+    .modal button {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      color: #ff3333;
+      cursor: pointer;
       font-weight: bold;
-      text-align: center;
-      color: #f88;
-    }
-    /* Responsive */
-    @media (max-width: 400px) {
-      .modal {
-        padding: 20px 25px;
-        width: 95vw;
-      }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">LunaBet</div>
-  <nav>
-    <!-- Aquí podrías agregar menú si querés, o dejar vacío -->
-  </nav>
-</header>
+  <header>LunaBet</header>
 
-<main>
-  <div class="modal" role="main">
-    <div class="tabs" role="tablist">
-      <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" tabindex="0">Iniciar Sesión</button>
-      <button class="tab-btn" id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register" tabindex="-1">Registrarse</button>
-    </div>
+  <main>
+    <button id="btnLogin">Iniciar Sesión</button>
+    <button id="btnRegister">Crear Cuenta</button>
+  </main>
 
-    <form id="login-form" role="tabpanel" aria-labelledby="tab-login">
+  <!-- Modal Login -->
+  <div class="modal-bg" id="modalLogin">
+    <div class="modal">
+      <span class="close-btn" id="closeLogin">&times;</span>
       <h2>Iniciar Sesión</h2>
-      <input type="email" id="login-email" placeholder="Email" required autocomplete="username" />
-      <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password" />
-      <button type="submit" class="submit-btn">Entrar</button>
-      <div id="login-mensaje"></div>
-    </form>
-
-    <form id="register-form" role="tabpanel" aria-labelledby="tab-register" style="display:none;">
-      <h2>Registrarse</h2>
-      <input type="email" id="register-email" placeholder="Email" required autocomplete="email" />
-      <input type="password" id="register-password" placeholder="Contraseña" required autocomplete="new-password" />
-      <button type="submit" class="submit-btn">Crear Cuenta</button>
-      <div id="register-mensaje"></div>
-    </form>
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Contraseña" />
+      <button onclick="login()">Entrar</button>
+      <div id="loginMsg" style="margin-top:10px; color:#ff3333;"></div>
+    </div>
   </div>
-</main>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <!-- Modal Registro -->
+  <div class="modal-bg" id="modalRegister">
+    <div class="modal">
+      <span class="close-btn" id="closeRegister">&times;</span>
+      <h2>Crear Cuenta</h2>
+      <input type="email" id="registerEmail" placeholder="Email" />
+      <input type="password" id="registerPassword" placeholder="Contraseña" />
+      <button onclick="register()">Registrarse</button>
+      <div id="registerMsg" style="margin-top:10px; color:#ff3333;"></div>
+    </div>
+  </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
-    authDomain: "lunabet-73609.firebaseapp.com",
-    projectId: "lunabet-73609",
-    storageBucket: "lunabet-73609.firebasestorage.app",
-    messagingSenderId: "45582135337",
-    appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
-    measurementId: "G-0XC4PX3HK9"
-  };
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
+  <script>
+    // Config Firebase (coloca la tuya)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-  // Pestañas login/register
-  const tabLogin = document.getElementById("tab-login");
-  const tabRegister = document.getElementById("tab-register");
-  const formLogin = document.getElementById("login-form");
-  const formRegister = document.getElementById("register-form");
-  const loginMsg = document.getElementById("login-mensaje");
-  const registerMsg = document.getElementById("register-mensaje");
+    // Abrir y cerrar modales
+    const btnLogin = document.getElementById('btnLogin');
+    const btnRegister = document.getElementById('btnRegister');
+    const modalLogin = document.getElementById('modalLogin');
+    const modalRegister = document.getElementById('modalRegister');
+    const closeLogin = document.getElementById('closeLogin');
+    const closeRegister = document.getElementById('closeRegister');
 
-  tabLogin.addEventListener("click", () => {
-    tabLogin.classList.add("active");
-    tabLogin.setAttribute("aria-selected", "true");
-    tabLogin.setAttribute("tabindex", "0");
+    btnLogin.onclick = () => modalLogin.classList.add('show');
+    btnRegister.onclick = () => modalRegister.classList.add('show');
 
-    tabRegister.classList.remove("active");
-    tabRegister.setAttribute("aria-selected", "false");
-    tabRegister.setAttribute("tabindex", "-1");
+    closeLogin.onclick = () => modalLogin.classList.remove('show');
+    closeRegister.onclick = () => modalRegister.classList.remove('show');
 
-    formLogin.style.display = "flex";
-    formRegister.style.display = "none";
+    // Login firebase
+    function login() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMsg');
 
-    loginMsg.textContent = "";
-    registerMsg.textContent = "";
-  });
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          msg.style.color = '#4CAF50';
+          msg.textContent = 'Inicio exitoso. Redirigiendo...';
+          setTimeout(() => {
+            window.location.href = 'plataforma/plataforma.html';
+          }, 1500);
+        })
+        .catch(err => {
+          msg.style.color = '#ff3333';
+          msg.textContent = err.message;
+        });
+    }
 
-  tabRegister.addEventListener("click", () => {
-    tabRegister.classList.add("active");
-    tabRegister.setAttribute("aria-selected", "true");
-    tabRegister.setAttribute("tabindex", "0");
+    // Registro firebase
+    function register() {
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const msg = document.getElementById('registerMsg');
 
-    tabLogin.classList.remove("active");
-    tabLogin.setAttribute("aria-selected", "false");
-    tabLogin.setAttribute("tabindex", "-1");
-
-    formRegister.style.display = "flex";
-    formLogin.style.display = "none";
-
-    loginMsg.textContent = "";
-    registerMsg.textContent = "";
-  });
-
-  // Login submit
-  formLogin.addEventListener("submit", (e) => {
-    e.preventDefault();
-    loginMsg.textContent = "";
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
-
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        loginMsg.style.color = "#4CAF50";
-        loginMsg.textContent = "Inicio exitoso. Redirigiendo...";
-        setTimeout(() => {
-          window.location.href = "plataforma/plataforma.html";
-        }, 1500);
-      })
-      .catch(error => {
-        loginMsg.style.color = "#f88";
-        loginMsg.textContent = "Error: " + error.message;
-      });
-  });
-
-  // Register submit
-  formRegister.addEventListener("submit", (e) => {
-    e.preventDefault();
-    registerMsg.textContent = "";
-    const email = document.getElementById("register-email").value.trim();
-    const password = document.getElementById("register-password").value;
-
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        registerMsg.style.color = "#4CAF50";
-        registerMsg.textContent = "Registro exitoso. Ya podés iniciar sesión.";
-        // Opcional: cambiar automáticamente a login
-        setTimeout(() => {
-          tabLogin.click();
-        }, 1500);
-      })
-      .catch(error => {
-        registerMsg.style.color = "#f88";
-        registerMsg.textContent = "Error: " + error.message;
-      });
-  });
-</script>
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          msg.style.color = '#4CAF50';
+          msg.textContent = 'Registro exitoso. Ahora puedes iniciar sesión.';
+          setTimeout(() => {
+            modalRegister.classList.remove('show');
+            modalLogin.classList.add('show');
+          }, 1500);
+        })
+        .catch(err => {
+          msg.style.color = '#ff3333';
+          msg.textContent = err.message;
+        });
+    }
+  </script>
 
 </body>
 </html>
