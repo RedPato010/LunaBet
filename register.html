@@ -1,113 +1,129 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registro - Lunabet</title>
-  <style>
-    body {
-      background: #111;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-      margin: 0;
-    }
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      width: 250px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-    }
-    input {
-      background: #222;
-      color: white;
-    }
-    button {
-      background-color: #ff3333;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #cc2929;
-    }
-    #loginBtn {
-      background-color: transparent;
-      border: 1px solid #ff3333;
-      color: #ff3333;
-      width: auto;
-      padding: 8px 20px;
-      margin-top: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    #loginBtn:hover {
-      background-color: #ff3333;
-      color: white;
-    }
-    #mensaje {
-      margin-top: 10px;
-      min-height: 24px;
-      font-weight: bold;
-      text-align: center;
-      width: 250px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Registrarse - LunaBet</title>
+<style>
+  body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .container {
+    background: #222;
+    padding: 2rem 3rem;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: none;
+    background: #333;
+    color: white;
+    font-size: 16px;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background: #ff3333;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #cc2929;
+  }
+  #mensaje {
+    margin-top: 1rem;
+    min-height: 24px;
+    font-weight: bold;
+    color: #ff6666;
+  }
+  .link-button {
+    margin-top: 1.5rem;
+    background: transparent;
+    border: 1px solid #ff3333;
+    color: #ff3333;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .link-button:hover {
+    background: #ff3333;
+    color: white;
+  }
+</style>
 </head>
 <body>
 
+<div class="container">
   <h2>Crear Cuenta</h2>
-  <input type="email" id="email" placeholder="Correo electrónico" />
-  <input type="password" id="password" placeholder="Contraseña" />
+  <input type="email" id="email" placeholder="Correo electrónico" required />
+  <input type="password" id="password" placeholder="Contraseña" required />
   <button onclick="registrar()">Registrarse</button>
-
   <div id="mensaje"></div>
+  <button class="link-button" onclick="window.location.href='login.html'">¿Ya tienes cuenta? Iniciar sesión</button>
+</div>
 
-  <button id="loginBtn" onclick="window.location.href='login.html'">
-    ¿Ya tienes cuenta? Iniciar sesión
-  </button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+    authDomain: "lunabet-73609.firebaseapp.com",
+    databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
+    projectId: "lunabet-73609",
+    storageBucket: "lunabet-73609.firebasestorage.app",
+    messagingSenderId: "45582135337",
+    appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+    measurementId: "G-0XC4PX3HK9"
+  };
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
-      authDomain: "lunabet-73609.firebaseapp.com",
-      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
-      projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.firebasestorage.app",
-      messagingSenderId: "45582135337",
-      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
-      measurementId: "G-0XC4PX3HK9"
-    };
+  function registrar() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const mensajeDiv = document.getElementById("mensaje");
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    mensajeDiv.style.color = "#ff6666";
+    mensajeDiv.textContent = "Validando...";
 
-    function registrar() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          document.getElementById("mensaje").textContent = "Registro exitoso. Redirigiendo...";
-          setTimeout(() => {
-            window.location.href = "login.html";
-          }, 1500);
-        })
-        .catch(error => {
-          document.getElementById("mensaje").textContent = "Error: " + error.message;
-        });
-    }
-  </script>
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        mensajeDiv.style.color = "#33ff33";
+        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a inicio...";
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+      })
+      .catch(error => {
+        mensajeDiv.style.color = "#ff6666";
+        mensajeDiv.textContent = "Error: " + error.message;
+      });
+  }
+</script>
 
 </body>
 </html>
