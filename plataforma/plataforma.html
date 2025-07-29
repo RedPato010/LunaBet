@@ -28,11 +28,48 @@
       color: #ff3333;
     }
 
+    /* Contenedor saldo y menú emergente */
     .saldo {
       font-size: 16px;
       background: #222;
       padding: 8px 16px;
       border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      display: inline-block;
+      color: #fff;
+    }
+
+    #menuSaldo {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+      z-index: 100;
+      min-width: 140px;
+      flex-direction: column;
+    }
+
+    #menuSaldo button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: white;
+      padding: 10px 8px;
+      font-size: 14px;
+      text-align: left;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #menuSaldo button:hover {
+      background-color: #ff3333;
     }
 
     nav {
@@ -139,7 +176,15 @@
           <a href="minas.html">Minas</a>
         </div>
       </div>
-      <div class="saldo">Saldo: $<span id="saldo">0</span></div>
+
+      <div class="saldo" id="saldoContainer">
+        Saldo: $<span id="saldo">0</span>
+        <div id="menuSaldo">
+          <button id="btnRecargar">Cargar saldo</button>
+          <button id="btnRetirar">Retirar saldo</button>
+        </div>
+      </div>
+
       <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </nav>
   </header>
@@ -170,6 +215,12 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    const saldoSpan = document.getElementById("saldo");
+    const saldoContainer = document.getElementById("saldoContainer");
+    const menuSaldo = document.getElementById("menuSaldo");
+    const btnRecargar = document.getElementById("btnRecargar");
+    const btnRetirar = document.getElementById("btnRetirar");
+
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "../login.html";
@@ -178,9 +229,33 @@
         const saldoRef = db.ref('usuarios/' + uid + '/saldo');
         saldoRef.once('value').then(snapshot => {
           const saldo = snapshot.val() ?? 0;
-          document.getElementById("saldo").textContent = saldo;
+          saldoSpan.textContent = saldo;
         });
       }
+    });
+
+    // Mostrar/ocultar menú saldo al hacer click
+    saldoContainer.addEventListener('click', (e) => {
+      e.stopPropagation(); // para que no cierre inmediatamente el menú
+      if (menuSaldo.style.display === 'flex') {
+        menuSaldo.style.display = 'none';
+      } else {
+        menuSaldo.style.display = 'flex';
+        menuSaldo.style.flexDirection = 'column';
+      }
+    });
+
+    // Cerrar menú si se clickea fuera
+    document.addEventListener('click', () => {
+      menuSaldo.style.display = 'none';
+    });
+
+    btnRecargar.addEventListener('click', () => {
+      window.location.href = 'recargar.html';
+    });
+
+    btnRetirar.addEventListener('click', () => {
+      window.location.href = 'retiro.html';
     });
 
     function cerrarSesion() {
@@ -191,7 +266,7 @@
       });
     }
 
-    // Mostrar submenu al hacer click
+    // Menú juegos
     document.addEventListener('DOMContentLoaded', () => {
       const menuItem = document.getElementById('menuMiniJuegos');
       const submenu = document.getElementById('submenu');
