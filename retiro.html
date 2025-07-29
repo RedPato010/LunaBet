@@ -2,37 +2,119 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Retirar fondos - LunaBet</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retirar Saldo - LunaBet</title>
 </head>
 <body>
+  <h2>Retirar saldo en ARS</h2>
 
-  <form class="form-box" id="retiroForm">
-    <h2>Solicitar retiro</h2>
-    <input type="number" id="monto" placeholder="Monto a retirar ($)" required min="500" />
-    <input type="text" id="cvu" placeholder="Tu CVU o Alias" required />
-    <button type="submit">Solicitar retiro</button>
-    <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
-  </form>
+  <p>Saldo actual: <span id="saldo">Cargando...</span> ARS</p>
 
- <script src="js/saldo.js"></script>
-<script>
-  document.getElementById('retiroForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const monto = parseFloat(document.getElementById('monto').value);
-    const cvu = document.getElementById('cvu').value;
-    if (monto < 500) return alert('El mínimo de retiro es $500');
-    const exito = descontarSaldo(monto);
-    if (!exito) {
-      alert('Saldo insuficiente.');
-      return;
+  <label for="monto">Monto a retirar (ARS):</label>
+  <input type="number" id="monto" min="500" step="100" /><br/><br/>
+
+  <label for="alias">Alias o CBU:</label>
+  <input type="text" id="alias" /><br/><br/>
+
+  <button onclick="solicitarRetiro()">Solicitar Retiro</button>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
+      authDomain: "lunabet-73609.firebaseapp.com",
+      projectId: "lunabet-73609",
+      storageBucket: "lunabet-73609.firebasestorage.app",
+      messagingSenderId: "45582135337",
+      appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
+      measurementId: "G-0XC4PX3HK9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        await mostrarSaldo();
+      } else {
+        alert("Debes iniciar sesión");
+        window.location.href = "login.html";
+      }
+    });
+
+    async function mostrarSaldo() {
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.getElementById("saldo").textContent = data.saldoARS ?? 0;
+      } else {
+        document.getElementById("saldo").textContent = 0;
+      }
     }
-    alert(`Retiro simulado de $${monto} a ${cvu}.\nSaldo actualizado.`);
-    window.location.href = 'dashboard.html';
-  });
-</script>
 
+    async function solicitarRetiro() {
+      const monto = parseInt(document.getElementById("monto").value);
+      const alias = document.getElementById("alias").value.trim();
 
+      if (isNaN(monto) || monto < 500) {
+        alert("El retiro mínimo es de $500");
+        return;
+      }
+
+      if (alias.length < 5) {
+        alert("Alias o CBU inválido");
+        return;
+      }
+
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      let saldoActual = 0;
+      if (userSnap.exists()) {
+        saldoActual = userSnap.data().saldoARS || 0;
+      }
+
+      if (monto > saldoActual) {
+        alert("No tienes suficiente saldo para retirar.");
+        return;
+      }
+
+      // Restar saldo
+      await updateDoc(userRef, {
+        saldoARS: saldoActual - monto
+      });
+
+      // Crear solicitud
+      const retiroData = {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        monto,
+        alias,
+        estado: "pendiente",
+        creado: serverTimestamp()
+      };
+
+      await addDoc(collection(db, "retiros"), retiroData);
+
+      alert("Solicitud de retiro enviada. Será procesada manualmente.");
+      document.getElementById("monto").value = "";
+      document.getElementById("alias").value = "";
+      await mostrarSaldo();
+    }
+  </script>
 </body>
 </html>
