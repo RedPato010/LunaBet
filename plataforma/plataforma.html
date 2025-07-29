@@ -396,6 +396,8 @@
 
     // Confirmar carga saldo
     btnConfirmarCargar.addEventListener('click', () => {
+      console.log("Usuario actual:", currentUser);
+
       const monto = parseInt(inputMontoCargar.value);
       if (isNaN(monto) || monto < 100) {
         alert("Ingresa un monto válido (mínimo $100)");
