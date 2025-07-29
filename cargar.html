@@ -3,57 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Recargar ARS - LunaBet</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 400px;
-      margin: 40px auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    label, p {
-      font-weight: bold;
-      margin-top: 20px;
-      display: block;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-    button {
-      margin-top: 25px;
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      background-color: #28a745;
-      border: none;
-      color: white;
-      border-radius: 6px;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-  </style>
+  <title>Recargar Saldo - LunaBet</title>
 </head>
 <body>
-  <h2>Recargar saldo en ARS</h2>
+  <h2>Recargar Saldo</h2>
 
-  <p>Saldo actual: <span id="saldo">Cargando...</span> ARS</p>
+  <p>Transferí el monto a este alias:</p>
+  <p><strong>Alias: lunabet.arg</strong></p>
+  <p><em>(Desde cualquier billetera o banco sin comisión)</em></p>
 
-  <label for="monto">Monto a recargar (ARS):</label>
-  <input type="number" id="monto" min="100" step="100" />
+  <label for="monto">Monto transferido (ARS):</label>
+  <input type="number" id="monto" min="100" step="100" required />
 
-  <button onclick="recargarSaldo()">Confirmar Recarga</button>
+  <br/><br/>
+
+  <button onclick="enviarRecarga()">Ya transferí</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
-      getFirestore, doc, getDoc, updateDoc, setDoc
+      getFirestore, collection, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import {
       getAuth, onAuthStateChanged
@@ -62,9 +31,8 @@
     const firebaseConfig = {
       apiKey: "AIzaSyBDWxn28oXn04--DMwkzqMq00g_W-OYJ3g",
       authDomain: "lunabet-73609.firebaseapp.com",
-      databaseURL: "https://lunabet-73609-default-rtdb.firebaseio.com",
       projectId: "lunabet-73609",
-      storageBucket: "lunabet-73609.firebasestorage.app",
+      storageBucket: "lunabet-73609.appspot.com",
       messagingSenderId: "45582135337",
       appId: "1:45582135337:web:3cb9190e37827d9cc72c38",
       measurementId: "G-0XC4PX3HK9"
@@ -76,49 +44,38 @@
 
     let currentUser;
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
-        await mostrarSaldo();
       } else {
         alert("Debes iniciar sesión");
         window.location.href = "login.html";
       }
     });
 
-    async function mostrarSaldo() {
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        document.getElementById("saldo").textContent = data.saldoARS ?? 0;
-      } else {
-        await setDoc(userRef, { saldoARS: 0 });
-        document.getElementById("saldo").textContent = 0;
-      }
-    }
-
-    async function recargarSaldo() {
+    async function enviarRecarga() {
       const monto = parseInt(document.getElementById("monto").value);
+
       if (isNaN(monto) || monto < 100) {
-        alert("Ingresa un monto válido (mínimo $100)");
+        alert("El monto mínimo es $100");
         return;
       }
 
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
+      try {
+        await addDoc(collection(db, "recargasPendientes"), {
+          uid: currentUser.uid,
+          email: currentUser.email,
+          monto: monto,
+          estado: "pendiente",
+          creado: serverTimestamp()
+        });
 
-      let saldoActual = 0;
-      if (userSnap.exists()) {
-        saldoActual = userSnap.data().saldoARS || 0;
+        alert("Recarga enviada. Será verificada en breve.");
+        document.getElementById("monto").value = "";
+      } catch (e) {
+        alert("Error al enviar la recarga");
+        console.error(e);
       }
-
-      const nuevoSaldo = saldoActual + monto;
-
-      await updateDoc(userRef, { saldoARS: nuevoSaldo });
-      alert(`Recarga exitosa. Nuevo saldo: $${nuevoSaldo}`);
-      document.getElementById("saldo").textContent = nuevoSaldo;
     }
   </script>
 </body>
