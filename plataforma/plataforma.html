@@ -211,7 +211,6 @@
 
   <header>
     <div class="logo">LunaBet</div>
-
     <nav>
       <div class="menu-item" id="menuMiniJuegos">
         🎮 Mini Juegos
@@ -222,7 +221,6 @@
           <a href="minas.html">Minas</a>
         </div>
       </div>
-
       <div class="saldo" id="saldoContainer">
         Saldo: $<span id="saldo">0</span>
         <div id="menuSaldo">
@@ -230,7 +228,6 @@
           <button id="btnRetirar">Retirar saldo</button>
         </div>
       </div>
-
       <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </nav>
   </header>
@@ -245,6 +242,9 @@
     <div class="modal">
       <span class="cerrar-modal" id="cerrarCargar">&times;</span>
       <h2>Cargar saldo en ARS</h2>
+      <p><strong>Alias:</strong> lunabet.transferencia</p>
+      <p><strong>CBU:</strong> 0000003100050078130023</p>
+      <button id="btnCopiarCBU">📋 Copiar Alias/CBU</button>
       <label for="montoCargar">Monto a cargar (ARS):</label>
       <input type="number" id="montoCargar" min="100" step="100" />
       <button id="btnConfirmarCargar">Confirmar carga</button>
@@ -294,6 +294,7 @@
     const cerrarCargar = document.getElementById("cerrarCargar");
     const btnConfirmarCargar = document.getElementById("btnConfirmarCargar");
     const inputMontoCargar = document.getElementById("montoCargar");
+    const btnCopiarCBU = document.getElementById("btnCopiarCBU");
 
     const modalRetirar = document.getElementById("modalRetirar");
     const cerrarRetirar = document.getElementById("cerrarRetirar");
@@ -314,36 +315,27 @@
 
     function cargarSaldoUsuario() {
       db.collection('users').doc(currentUser.uid).get().then(docSnap => {
-        if (docSnap.exists) {
-          const data = docSnap.data();
-          saldoSpan.textContent = data.saldoARS ?? 0;
-        } else {
-          saldoSpan.textContent = 0;
-          db.collection('users').doc(currentUser.uid).set({ saldoARS: 0 });
-        }
+        const data = docSnap.data();
+        saldoSpan.textContent = data?.saldoARS ?? 0;
       });
     }
 
-    // Mostrar/ocultar menú saldo al hacer click
-    saldoContainer.addEventListener('click', (e) => {
+    saldoContainer.addEventListener('click', e => {
       e.stopPropagation();
-      menuSaldo.style.display = (menuSaldo.style.display === 'flex') ? 'none' : 'flex';
+      menuSaldo.style.display = menuSaldo.style.display === 'flex' ? 'none' : 'flex';
       menuSaldo.style.flexDirection = 'column';
     });
 
-    // Cerrar menú saldo si clic fuera
     document.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
     });
 
-    // Abrir modal cargar saldo
     btnRecargar.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
       modalCargar.classList.add('mostrar');
       inputMontoCargar.value = "";
     });
 
-    // Abrir modal retirar saldo
     btnRetirar.addEventListener('click', () => {
       menuSaldo.style.display = 'none';
       modalRetirar.classList.add('mostrar');
@@ -351,15 +343,14 @@
       inputAliasRetirar.value = "";
     });
 
-    // Cerrar modales
     cerrarCargar.addEventListener('click', () => {
       modalCargar.classList.remove('mostrar');
     });
+
     cerrarRetirar.addEventListener('click', () => {
       modalRetirar.classList.remove('mostrar');
     });
 
-    // Confirmar carga saldo
     btnConfirmarCargar.addEventListener('click', () => {
       const monto = parseInt(inputMontoCargar.value);
       if (isNaN(monto) || monto < 100) {
@@ -369,10 +360,7 @@
 
       const userRef = db.collection('users').doc(currentUser.uid);
       userRef.get().then(docSnap => {
-        let saldoActual = 0;
-        if (docSnap.exists) {
-          saldoActual = docSnap.data().saldoARS || 0;
-        }
+        let saldoActual = docSnap.data().saldoARS || 0;
         const nuevoSaldo = saldoActual + monto;
 
         userRef.update({ saldoARS: nuevoSaldo }).then(() => {
@@ -383,7 +371,6 @@
       });
     });
 
-    // Confirmar retiro saldo
     btnConfirmarRetirar.addEventListener('click', () => {
       const monto = parseInt(inputMontoRetirar.value);
       const alias = inputAliasRetirar.value.trim();
@@ -399,19 +386,13 @@
 
       const userRef = db.collection('users').doc(currentUser.uid);
       userRef.get().then(docSnap => {
-        if (!docSnap.exists) {
-          alert("Error al obtener saldo.");
-          return;
-        }
         const saldoActual = docSnap.data().saldoARS || 0;
-
         if (monto > saldoActual) {
-          alert("No tienes suficiente saldo para retirar.");
+          alert("No tienes suficiente saldo.");
           return;
         }
 
         userRef.update({ saldoARS: saldoActual - monto }).then(() => {
-          // Guardar solicitud de retiro
           db.collection('retiros').add({
             uid: currentUser.uid,
             email: currentUser.email,
@@ -420,7 +401,7 @@
             estado: "pendiente",
             creado: firebase.firestore.FieldValue.serverTimestamp()
           }).then(() => {
-            alert("Solicitud de retiro enviada. Será procesada manualmente.");
+            alert("Solicitud de retiro enviada.");
             saldoSpan.textContent = saldoActual - monto;
             modalRetirar.classList.remove('mostrar');
           });
@@ -428,15 +409,21 @@
       });
     });
 
+    btnCopiarCBU.addEventListener("click", () => {
+      const texto = "Alias: lunabet.transferencia\nCBU: 0000003100050078130023";
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("Alias y CBU copiados al portapapeles");
+      }).catch(() => {
+        alert("Error al copiar");
+      });
+    });
+
     function cerrarSesion() {
       auth.signOut().then(() => {
         window.location.href = "../login.html";
-      }).catch(error => {
-        alert("Error al cerrar sesión: " + error.message);
       });
     }
 
-    // Menú juegos
     document.addEventListener('DOMContentLoaded', () => {
       const menuItem = document.getElementById('menuMiniJuegos');
       const submenu = document.getElementById('submenu');
@@ -455,3 +442,4 @@
   </script>
 </body>
 </html>
+
