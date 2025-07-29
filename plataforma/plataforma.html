@@ -395,27 +395,39 @@
     });
 
     // Confirmar carga saldo
-    btnConfirmarCargar.addEventListener('click', () => {
-      console.log("Usuario actual:", currentUser);
+   btnConfirmarCargar.addEventListener('click', () => {
+  console.log("Click detectado");
 
-      const monto = parseInt(inputMontoCargar.value);
-      if (isNaN(monto) || monto < 100) {
-        alert("Ingresa un monto válido (mínimo $100)");
-        return;
-      }
+  const monto = parseInt(inputMontoCargar.value);
+  console.log("Monto ingresado:", monto);
 
-      // Guardar solicitud de carga pendiente (no sumamos saldo automático)
-      db.collection('cargas').add({
-        uid: currentUser.uid,
-        email: currentUser.email,
-        monto,
-        estado: "pendiente",
-        creado: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        alert(`Solicitud de carga enviada por $${monto}. Será aprobada manualmente.`);
-        modalCargar.classList.remove('mostrar');
-      });
-    });
+  if (!currentUser) {
+    console.error("Error: Usuario no autenticado");
+    return;
+  }
+
+  if (isNaN(monto) || monto < 100) {
+    alert("Ingresa un monto válido (mínimo $100)");
+    return;
+  }
+
+  console.log("Guardando solicitud en Firebase...");
+
+  db.collection('cargas').add({
+    uid: currentUser.uid,
+    email: currentUser.email,
+    monto,
+    estado: "pendiente",
+    creado: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    alert(`Solicitud de carga enviada por $${monto}. Será aprobada manualmente.`);
+    modalCargar.classList.remove('mostrar');
+  }).catch(error => {
+    console.error("Error al guardar carga:", error);
+    alert("Error al enviar la solicitud. Revisa tu conexión.");
+  });
+});
+
 
     // Confirmar retiro saldo
     btnConfirmarRetirar.addEventListener('click', () => {
