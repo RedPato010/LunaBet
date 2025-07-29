@@ -196,47 +196,6 @@
       font-weight: bold;
     }
 
-    /* Estilo para botones copiar */
-    .btn-copiar {
-      margin-left: 8px;
-      padding: 4px 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background-color: #444;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
-    .btn-copiar:hover {
-      background-color: #ff3333;
-    }
-
-    /* Contenedor para alias y cbu con copia */
-    .campo-copiar {
-      display: flex;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .campo-copiar span {
-      user-select: all;
-      flex-grow: 1;
-      padding: 6px 10px;
-      background: #333;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 16px;
-    }
-
-    /* Mensajes pequeños */
-    .mensaje-copiado {
-      margin-top: 6px;
-      color: #4caf50;
-      font-weight: bold;
-      font-size: 14px;
-      height: 18px;
-    }
-
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -320,23 +279,10 @@
       <h2>Retirar saldo en ARS</h2>
       <label for="montoRetirar">Monto a retirar (ARS):</label>
       <input type="number" id="montoRetirar" min="500" step="100" />
-      
-      <label>Alias para retiro:</label>
-      <div class="campo-copiar">
-        <span id="aliasRetiroText">ejemplo_alias_123</span>
-        <button class="btn-copiar" id="copiarAliasBtn">Copiar Alias</button>
-      </div>
-      <div class="mensaje-copiado" id="mensajeAlias"></div>
-
-      <label>CBU para retiro:</label>
-      <div class="campo-copiar">
-        <span id="cbuRetiroText">1234567890123456789012</span>
-        <button class="btn-copiar" id="copiarCbuBtn">Copiar CBU</button>
-      </div>
-      <div class="mensaje-copiado" id="mensajeCbu"></div>
 
       <label for="aliasRetirar">Alias o CBU para el retiro:</label>
       <input type="text" id="aliasRetirar" placeholder="Ingresa alias o CBU" />
+
       <button id="btnConfirmarRetirar">Solicitar retiro</button>
     </div>
   </div>
@@ -388,14 +334,6 @@
     const inputMontoRetirar = document.getElementById("montoRetirar");
     const inputAliasRetirar = document.getElementById("aliasRetirar");
 
-    // Alias y CBU retiro
-    const aliasRetiroText = document.getElementById("aliasRetiroText");
-    const cbuRetiroText = document.getElementById("cbuRetiroText");
-    const copiarAliasBtn = document.getElementById("copiarAliasBtn");
-    const copiarCbuBtn = document.getElementById("copiarCbuBtn");
-    const mensajeAlias = document.getElementById("mensajeAlias");
-    const mensajeCbu = document.getElementById("mensajeCbu");
-
     let currentUser;
 
     auth.onAuthStateChanged(user => {
@@ -446,8 +384,6 @@
       modalRetirar.classList.add('mostrar');
       inputMontoRetirar.value = "";
       inputAliasRetirar.value = "";
-      mensajeAlias.textContent = "";
-      mensajeCbu.textContent = "";
     });
 
     // Cerrar modales
@@ -548,37 +484,6 @@
         menuItem.classList.remove('activo');
       });
     });
-
-    // Funciones copiar al portapapeles con mensajes
-
-    copiarAliasCargaBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(aliasCargaText.textContent).then(() => {
-        mensajeAliasCarga.textContent = "Alias copiado ✅";
-        setTimeout(() => { mensajeAliasCarga.textContent = ""; }, 2500);
-      });
-    });
-
-    copiarCbuCargaBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(cbuCargaText.textContent).then(() => {
-        mensajeCbuCarga.textContent = "CBU copiado ✅";
-        setTimeout(() => { mensajeCbuCarga.textContent = ""; }, 2500);
-      });
-    });
-
-    copiarAliasBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(aliasRetiroText.textContent).then(() => {
-        mensajeAlias.textContent = "Alias copiado ✅";
-        setTimeout(() => { mensajeAlias.textContent = ""; }, 2500);
-      });
-    });
-
-    copiarCbuBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(cbuRetiroText.textContent).then(() => {
-        mensajeCbu.textContent = "CBU copiado ✅";
-        setTimeout(() => { mensajeCbu.textContent = ""; }, 2500);
-      });
-    });
-
   </script>
 </body>
 </html>
