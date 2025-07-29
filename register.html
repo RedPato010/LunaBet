@@ -134,9 +134,9 @@
       })
       .then(() => {
         mensajeDiv.style.color = "#33ff33";
-        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a inicio...";
+        mensajeDiv.textContent = "Registro exitoso. Redirigiendo a la plataforma...";
         setTimeout(() => {
-          window.location.href = "login.html";
+          window.location.href = "plataforma/plataforma.html";
         }, 1500);
       })
       .catch(error => {
