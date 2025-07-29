@@ -2,31 +2,88 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cargar créditos - LunaBet</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recargar ARS - LunaBet</title>
 </head>
 <body>
+  <h2>Recargar saldo en ARS</h2>
 
-  <form class="form-box" id="cargarForm">
-    <h2>Cargar créditos</h2>
-    <input type="number" id="monto" placeholder="Monto a cargar ($)" required min="100" />
-    <button type="submit">Generar link de pago</button>
-    <div class="back-link"><a href="dashboard.html">Volver al panel</a></div>
-  </form>
+  <p>Saldo actual: <span id="saldo">Cargando...</span> ARS</p>
 
- <script src="js/saldo.js"></script>
-<script>
-  document.getElementById('cargarForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const monto = parseFloat(document.getElementById('monto').value);
-    if (monto < 100) return alert('El monto mínimo es $100');
-    cargarSaldo(monto);
-    alert(`Cargaste $${monto}. Saldo actualizado.`);
-    window.location.href = 'dashboard.html';
-  });
-</script>
+  <label for="monto">Monto a recargar (ARS):</label>
+  <input type="number" id="monto" min="100" step="100" />
 
+  <button onclick="recargarSaldo()">Confirmar Recarga</button>
 
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_BUCKET",
+      messagingSenderId: "TU_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        await mostrarSaldo();
+      } else {
+        alert("Debes iniciar sesión");
+        window.location.href = "login.html";
+      }
+    });
+
+    async function mostrarSaldo() {
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.getElementById("saldo").textContent = data.saldoARS ?? 0;
+      } else {
+        await setDoc(userRef, { saldoARS: 0 });
+        document.getElementById("saldo").textContent = 0;
+      }
+    }
+
+    async function recargarSaldo() {
+      const monto = parseInt(document.getElementById("monto").value);
+      if (isNaN(monto) || monto < 100) {
+        alert("Ingresa un monto válido (mínimo $100)");
+        return;
+      }
+
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      let saldoActual = 0;
+      if (userSnap.exists()) {
+        saldoActual = userSnap.data().saldoARS || 0;
+      }
+
+      const nuevoSaldo = saldoActual + monto;
+
+      await updateDoc(userRef, { saldoARS: nuevoSaldo });
+      alert(`Recarga exitosa. Nuevo saldo: $${nuevoSaldo}`);
+      document.getElementById("saldo").textContent = nuevoSaldo;
+    }
+  </script>
 </body>
 </html>
