@@ -4,6 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Retirar Saldo - LunaBet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    label, p {
+      font-weight: bold;
+      margin-top: 20px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 25px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      border-radius: 6px;
+    }
+    button:hover {
+      background-color: #c82333;
+    }
+  </style>
 </head>
 <body>
   <h2>Retirar saldo en ARS</h2>
@@ -11,14 +46,13 @@
   <p>Saldo actual: <span id="saldo">Cargando...</span> ARS</p>
 
   <label for="monto">Monto a retirar (ARS):</label>
-  <input type="number" id="monto" min="500" step="100" /><br/><br/>
+  <input type="number" id="monto" min="500" step="100" />
 
   <label for="alias">Alias o CBU:</label>
-  <input type="text" id="alias" /><br/><br/>
+  <input type="text" id="alias" />
 
   <button onclick="solicitarRetiro()">Solicitar Retiro</button>
 
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -93,12 +127,10 @@
         return;
       }
 
-      // Restar saldo
       await updateDoc(userRef, {
         saldoARS: saldoActual - monto
       });
 
-      // Crear solicitud
       const retiroData = {
         uid: currentUser.uid,
         email: currentUser.email,
