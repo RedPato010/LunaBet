@@ -394,15 +394,25 @@
       modalRetirar.classList.remove('mostrar');
     });
 
-    // Confirmar carga saldo
-   btnConfirmarCargar.addEventListener('click', () => {
-  console.log("Click detectado");
+   // Confirmar carga saldo (MEJORADO)
+btnConfirmarCargar.addEventListener('click', async () => {
+  console.log("Click detectado en Confirmar carga");
 
   const monto = parseInt(inputMontoCargar.value);
-  console.log("Monto ingresado:", monto);
+  let estadoMsg = document.getElementById("estadoCargaMsg");
+
+  // Crear mensaje visual si no existe
+  if (!estadoMsg) {
+    estadoMsg = document.createElement("p");
+    estadoMsg.id = "estadoCargaMsg";
+    estadoMsg.style.fontWeight = "bold";
+    estadoMsg.style.marginTop = "10px";
+    estadoMsg.style.textAlign = "center";
+    document.querySelector("#modalCargar .modal").appendChild(estadoMsg);
+  }
 
   if (!currentUser) {
-    console.error("Error: Usuario no autenticado");
+    alert("Error: Usuario no autenticado.");
     return;
   }
 
@@ -411,22 +421,40 @@
     return;
   }
 
-  console.log("Guardando solicitud en Firebase...");
+  btnConfirmarCargar.disabled = true;
+  estadoMsg.style.color = "orange";
+  estadoMsg.textContent = "Confirmando transferencia...";
 
-  db.collection('cargas').add({
-    uid: currentUser.uid,
-    email: currentUser.email,
-    monto,
-    estado: "pendiente",
-    creado: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    alert(`Solicitud de carga enviada por $${monto}. Será aprobada manualmente.`);
-    modalCargar.classList.remove('mostrar');
-  }).catch(error => {
+  try {
+    await db.collection('cargas').add({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      monto,
+      estado: "pendiente",
+      creado: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    estadoMsg.style.color = "green";
+    estadoMsg.textContent = `¡Solicitud de carga por $${monto} enviada con éxito!`;
+    inputMontoCargar.value = "";
+
+    // Cierra el modal después de unos segundos (opcional)
+    setTimeout(() => {
+      modalCargar.classList.remove('mostrar');
+      estadoMsg.textContent = "";
+    }, 3000);
+  } catch (error) {
     console.error("Error al guardar carga:", error);
-    alert("Error al enviar la solicitud. Revisa tu conexión.");
-  });
+    estadoMsg.style.color = "red";
+    estadoMsg.textContent = "Error al enviar la solicitud. Revisa tu conexión.";
+  }
+
+  setTimeout(() => {
+    btnConfirmarCargar.disabled = false;
+    estadoMsg.textContent = "";
+  }, 4000);
 });
+
 
 
     // Confirmar retiro saldo
