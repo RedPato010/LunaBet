@@ -17,7 +17,8 @@
 
   <br/><br/>
 
-  <button onclick="enviarRecarga()">Ya transferí</button>
+  <button id="btnTransferencia" onclick="enviarRecarga()" disabled>Ya transferí</button>
+  <p id="estadoTransferencia" style="color: orange; font-weight: bold;"></p>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -47,6 +48,7 @@
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
+        document.getElementById("btnTransferencia").disabled = false;
       } else {
         alert("Debes iniciar sesión");
         window.location.href = "login.html";
@@ -54,12 +56,23 @@
     });
 
     async function enviarRecarga() {
+      const btn = document.getElementById("btnTransferencia");
+      const estadoMsg = document.getElementById("estadoTransferencia");
       const monto = parseInt(document.getElementById("monto").value);
 
       if (isNaN(monto) || monto < 100) {
         alert("El monto mínimo es $100");
         return;
       }
+
+      if (!currentUser) {
+        alert("Usuario no autenticado. Espera o vuelve a iniciar sesión.");
+        return;
+      }
+
+      btn.disabled = true;
+      estadoMsg.style.color = "orange";
+      estadoMsg.textContent = "Confirmando transferencia...";
 
       try {
         await addDoc(collection(db, "recargasPendientes"), {
@@ -70,12 +83,20 @@
           creado: serverTimestamp()
         });
 
-        alert("Recarga enviada. Será verificada en breve.");
+        estadoMsg.style.color = "green";
+        estadoMsg.textContent = "¡Transferencia confirmada! Será verificada pronto.";
         document.getElementById("monto").value = "";
+
       } catch (e) {
-        alert("Error al enviar la recarga");
         console.error(e);
+        estadoMsg.style.color = "red";
+        estadoMsg.textContent = "Error al enviar la recarga. Intenta nuevamente.";
       }
+
+      setTimeout(() => {
+        estadoMsg.textContent = "";
+        btn.disabled = false;
+      }, 4000);
     }
   </script>
 </body>
